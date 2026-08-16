@@ -1,19 +1,304 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Zombie City Survival</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            background: #0b0f19;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #game-over {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 5, 5, 0.85);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 20;
+        }
+        #game-over h1 { font-size: 45px; color: #ef4444; margin-bottom: 10px; text-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
+        #game-over p { font-size: 22px; color: #cbd5e1; margin-bottom: 25px; }
+        button {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white; border: none; padding: 12px 30px;
+            font-size: 20px; font-weight: bold; border-radius: 30px;
+            cursor: pointer; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.05); }
+    </style>
     <!-- Poki SDK -->
     <script src="https://game-sdk.poki.com/js/v2.js"></script>
 </head>
 <body>
+    <div id="ui">
+        MÁU: <span id="hp" style="color: #22c55e;">100</span> | 
+        TIÊU DIỆT: <span id="score" style="color: #38bdf8;">0</span> | 
+        WAVE: <span id="wave" style="color: #f59e0b;">1</span>
+    </div>
+
+    <div id="game-over">
+        <h1>BẠN ĐÃ GỤC NGÃ TRONG THÀNH PHỐ</h1>
+        <p>Số zombie tiêu diệt được: <span id="final-score">0</span></p>
+        <button onclick="restartGame()">CHIẾN ĐẤU LẠI</button>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
+
     <script>
         // Khởi tạo Poki SDK
-        PokiSDK.init().then(() => { console.log("Poki SDK ready"); }).catch(() => { console.log("Poki SDK offline"); });
+        try {
+            PokiSDK.init().then(() => { console.log("Poki SDK ready"); }).catch(() => { console.log("Poki SDK offline"); });
+        } catch(e) { console.log("Poki SDK not available"); }
+
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Tải hình ảnh người chơi và zombie từ file bạn đã cung cấp
+        const playerImg = new Image();
+        playerImg.src = "image_9ed542.png"; 
+
+        const zombieImg = new Image();
+        zombieImg.src = "image_9ed5c3.png"; 
+
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 25,
+            speed: 4,
+            hp: 100,
+            angle: 0
+        };
+
+        let keys = {};
+        let mouse = { x: 0, y: 0, clicked: false };
+        let bullets = [];
+        let zombies = [];
+        let score = 0;
+        let wave = 1;
+        let isGameOver = false;
+
+        window.addEventListener("keydown", (e) => keys[e.code] = true);
+        window.addEventListener("keyup", (e) => keys[e.code] = false);
+        window.addEventListener("mousemove", (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener("mousedown", () => mouse.clicked = true);
+        window.addEventListener("mouseup", () => mouse.clicked = false);
+
+        function spawnZombies() {
+            let count = 5 + wave * 4;
+            for (let i = 0; i < count; i++) {
+                let side = Math.floor(Math.random() * 4);
+                let zx, zy;
+                if (side === 0) { zx = Math.random() * canvas.width; zy = -50; }
+                else if (side === 1) { zx = Math.random() * canvas.width; zy = canvas.height + 50; }
+                else if (side === 2) { zx = -50; zy = Math.random() * canvas.height; }
+                else { zx = canvas.width + 50; zy = Math.random() * canvas.height; }
+
+                zombies.push({
+                    x: zx,
+                    y: zy,
+                    radius: 20,
+                    speed: 1.5 + Math.random() * 1.2,
+                    hp: 2
+                });
+            }
+        }
+        spawnZombies();
+
+        let shootTimer = 0;
+        function update() {
+            if (isGameOver) return;
+
+            let dx = 0, dy = 0;
+            if (keys["KeyW"] || keys["ArrowUp"]) dy = -1;
+            if (keys["KeyS"] || keys["ArrowDown"]) dy = 1;
+            if (keys["KeyA"] || keys["ArrowLeft"]) dx = -1;
+            if (keys["KeyD"] || keys["ArrowRight"]) dx = 1;
+
+            if (dx !== 0 && dy !== 0) {
+                dx *= 0.7071;
+                dy *= 0.7071;
+            }
+
+            player.x += dx * player.speed;
+            player.y += dy * player.speed;
+
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+            player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+
+            shootTimer++;
+            if (mouse.clicked && shootTimer > 8) {
+                shootTimer = 0;
+                let bulletSpeed = 12;
+                bullets.push({
+                    x: player.x + Math.cos(player.angle) * 30,
+                    y: player.y + Math.sin(player.angle) * 30,
+                    vx: Math.cos(player.angle) * bulletSpeed,
+                    vy: Math.sin(player.angle) * bulletSpeed
+                });
+            }
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                for (let j = zombies.length - 1; j >= 0; j--) {
+                    let z = zombies[j];
+                    let dist = Math.hypot(b.x - z.x, b.y - z.y);
+                    if (dist < z.radius + 5) {
+                        z.hp--;
+                        bullets.splice(i, 1);
+                        if (z.hp <= 0) {
+                            zombies.splice(j, 1);
+                            score++;
+                            document.getElementById("score").innerText = score;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            for (let i = zombies.length - 1; i >= 0; i--) {
+                let z = zombies[i];
+                let angleToPlayer = Math.atan2(player.y - z.y, player.x - z.x);
+                z.x += Math.cos(angleToPlayer) * z.speed;
+                z.y += Math.sin(angleToPlayer) * z.speed;
+
+                let distToPlayer = Math.hypot(player.x - z.x, player.y - z.y);
+                if (distToPlayer < player.radius + z.radius - 10) {
+                    player.hp -= 0.6;
+                    document.getElementById("hp").innerText = Math.max(0, Math.floor(player.hp));
+                    if (player.hp <= 0) {
+                        triggerGameOver();
+                    }
+                }
+            }
+
+            if (zombies.length === 0) {
+                wave++;
+                document.getElementById("wave").innerText = wave;
+                spawnZombies();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = "#111827";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = "rgba(55, 65, 81, 0.3)";
+            ctx.lineWidth = 2;
+            for (let x = 0; x < canvas.width; x += 100) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 100) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            zombies.forEach(z => {
+                ctx.save();
+                ctx.translate(z.x, z.y);
+                let zAngle = Math.atan2(player.y - z.y, player.x - z.x);
+                ctx.rotate(zAngle + Math.PI / 2);
+                if (zombieImg.complete && zombieImg.naturalHeight !== 0) {
+                    ctx.drawImage(zombieImg, -25, -30, 50, 60);
+                } else {
+                    ctx.fillStyle = "#15803d";
+                    ctx.beginPath(); ctx.arc(0, 0, z.radius, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(player.angle);
+            if (playerImg.complete && playerImg.naturalHeight !== 0) {
+                ctx.drawImage(playerImg, -30, -30, 60, 60);
+            } else {
+                ctx.fillStyle = "#38bdf8";
+                ctx.beginPath(); ctx.arc(0, 0, player.radius, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+
+            ctx.fillStyle = "#facc15";
+            bullets.forEach(b => {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function triggerGameOver() {
+            isGameOver = true;
+            document.getElementById("final-score").innerText = score;
+            document.getElementById("game-over").style.display = "flex";
+            
+            // Gọi quảng cáo Poki khi người chơi thua
+            try {
+                PokiSDK.commercialBreak().then(() => {
+                    console.log("Ad finished");
+                });
+            } catch(e) { console.log("Ad error"); }
+        }
+
+        function restartGame() {
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.hp = 100;
+            score = 0;
+            wave = 1;
+            bullets = [];
+            zombies = [];
+            isGameOver = false;
+            document.getElementById("hp").innerText = "100";
+            document.getElementById("score").innerText = "0";
+            document.getElementById("wave").innerText = "1";
+            document.getElementById("game-over").style.display = "none";
+            spawnZombies();
+        }
+
+        gameLoop();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
-    <script src="js/zombie.js"></script>
-    <script src="js/game.js"></script>
 </body>
 </html>
