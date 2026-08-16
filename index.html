@@ -6,7 +6,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://game-sdk.poki.com/js/v2.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; background: #0b0f19; user-select: none; font-family: Arial, sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; user-select: none; font-family: Arial, sans-serif; }
         #ui {
             position: absolute; top: 20px; left: 20px; color: #fff;
             font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px #000; z-index: 10;
@@ -36,78 +36,124 @@
             PokiSDK.init().then(() => { PokiSDK.gameLoadingFinished(); });
         } catch(e) {}
 
-        // 1. Khởi tạo Scene 3D
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Ánh sáng
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(10, 20, 10);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
 
-        // 2. Tạo Map đường phố 3D
-        const groundGeometry = new THREE.PlaneGeometry(100, 100);
-        const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 });
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        const textureLoader = new THREE.TextureLoader();
+
+        // 1. Dùng ĐÚNG ảnh map.jpg làm mặt phẳng 3D
+        const mapTexture = textureLoader.load('map.jpg');
+        const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 100),
+            new THREE.MeshBasicMaterial({ map: mapTexture })
+        );
         ground.rotation.x = -Math.PI / 2;
         scene.add(ground);
 
-        // 3. Tạo Nhân vật 3D (Cứu hộ màu xanh dương)
-        const playerGeometry = new THREE.BoxGeometry(1.5, 3, 1);
-        const playerMaterial = new THREE.MeshStandardMaterial({ color: 0x0ea5e9 });
-        const player = new THREE.Mesh(playerGeometry, playerMaterial);
-        player.position.y = 1.5;
+        // 2. Dùng ĐÚNG ảnh player.png (nhân vật cầm súng)
+        const playerTexture = textureLoader.load('player.png');
+        const player = new THREE.Sprite(new THREE.SpriteMaterial({ map: playerTexture }));
+        player.scale.set(5, 5, 1);
+        player.position.y = 2.5;
         scene.add(player);
 
-        // 4. Tạo đàn Zombie 3D (Màu xanh lá đậm)
+        // 3. Dùng ĐÚNG ảnh zombie.png cho lũ zombie
+        const zombieTexture = textureLoader.load('zombie.png');
         let zombies = [];
-        const zombieGeometry = new THREE.BoxGeometry(1.5, 3, 1);
-        const zombieMaterial = new THREE.MeshStandardMaterial({ color: 0x15803d });
-
         for (let i = 0; i < 8; i++) {
-            let zombie = new THREE.Mesh(zombieGeometry, zombieMaterial);
-            zombie.position.set((Math.random() - 0.5) * 40, 1.5, (Math.random() - 0.5) * 40);
+            let zombie = new THREE.Sprite(new THREE.SpriteMaterial({ map: zombieTexture }));
+            zombie.scale.set(4, 4, 1);
+            zombie.position.set((Math.random() - 0.5) * 50, 2, (Math.random() - 0.5) * 50);
             scene.add(zombie);
             zombies.push(zombie);
         }
 
-        // Bàn phím điều khiển
-        let keys = {};
-        window.addEventListener('keydown', (e) => keys[e.code] = true);
-        window.addEventListener('keyup', (e) => keys[e.code] = false);
-
+        // Đạn và hệ thống ngắm bắn
+        let bullets = [];
         let score = 0;
         let hp = 100;
+        let keys = {};
+        let mouse = { x: 0, y: 0 };
 
-        // Vòng lặp game 3D
+        window.addEventListener('keydown', (e) => keys[e.code] = true);
+        window.addEventListener('keyup', (e) => keys[e.code] = false);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Bắn súng khi click chuột
+        window.addEventListener('mousedown', () => {
+            let bullet = new THREE.Mesh(
+                new THREE.SphereGeometry(0.3, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xfacc15 })
+            );
+            bullet.position.copy(player.position);
+            
+            // Hướng đạn bay theo góc nhìn chuột
+            let angle = Math.atan2(mouse.x, mouse.y);
+            bullet.userData = { 
+                vx: Math.sin(angle) * 0.8, 
+                vz: -Math.cos(angle) * 0.8 
+            };
+            scene.add(bullet);
+            bullets.push(bullet);
+        });
+
         function animate() {
             requestAnimationFrame(animate);
 
-            // Di chuyển nhân vật bằng W, A, S, D
-            if (keys['KeyW'] || keys['ArrowUp']) player.position.z -= 0.3;
-            if (keys['KeyS'] || keys['ArrowDown']) player.position.z += 0.3;
-            if (keys['KeyA'] || keys['ArrowLeft']) player.position.x -= 0.3;
-            if (keys['KeyD'] || keys['ArrowRight']) player.position.x += 0.3;
+            // Di chuyển nhân vật
+            if (keys['KeyW'] || keys['ArrowUp']) player.position.z -= 0.4;
+            if (keys['KeyS'] || keys['ArrowDown']) player.position.z += 0.4;
+            if (keys['KeyA'] || keys['ArrowLeft']) player.position.x -= 0.4;
+            if (keys['KeyD'] || keys['ArrowRight']) player.position.x += 0.4;
 
-            // Camera góc nhìn 3D đuổi theo sau nhân vật
+            // Camera đuổi theo và xoay theo vị trí nhân vật
             camera.position.set(player.position.x, player.position.y + 12, player.position.z + 14);
             camera.lookAt(player.position);
 
-            // Zombie tự động đuổi theo nhân vật
+            // Cập nhật đạn bay
+            bullets.forEach((b, index) => {
+                b.position.x += b.userData.vx;
+                b.position.z += b.userData.vz;
+
+                // Kiểm tra đạn trúng zombie
+                zombies.forEach((z, zIndex) => {
+                    if (b.position.distanceTo(z.position) < 2) {
+                        scene.remove(z);
+                        zombies.splice(zIndex, 1);
+                        scene.remove(b);
+                        bullets.splice(index, 1);
+                        score++;
+                        document.getElementById("score").innerText = score;
+                    }
+                });
+            });
+
+            // Zombie đuổi theo nhân vật
             zombies.forEach(z => {
-                z.position.x += (player.position.x - z.position.x) * 0.015;
-                z.position.z += (player.position.z - z.position.z) * 0.015;
+                z.position.x += (player.position.x - z.position.x) * 0.012;
+                z.position.z += (player.position.z - z.position.z) * 0.012;
+
+                if (player.position.distanceTo(z.position) < 1.5) {
+                    hp -= 0.5;
+                    document.getElementById("hp").innerText = Math.max(0, Math.floor(hp));
+                    if (hp <= 0) {
+                        document.getElementById("game-over").style.display = "flex";
+                    }
+                }
             });
 
             renderer.render(scene, camera);
         }
         animate();
 
-        // Tự động co giãn khi đổi kích thước màn hình
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
