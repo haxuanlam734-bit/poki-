@@ -2,18 +2,20 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Catapult Cat Game</title>
-    <style>
-        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #333; }
-        canvas { background: #87CEEB; border: 4px solid #fff; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catapult Cat: Cuộc Phiêu Lưu Trên Mây</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-    <!-- Dòng này quan trọng: nó kết nối trang web với file game.js của bạn -->
+    <div id="game-container">
+        <div id="score-board">Điểm: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="900" height="600"></canvas>
+        <div id="game-over-screen" class="hidden">
+            <h1>RƠI XUỐNG ĐẤT RỒI!</h1>
+            <p>Điểm của bạn: <span id="final-score">0</span></p>
+            <button onclick="restartGame()">CHƠI LẠI</button>
+        </div>
+    </div>
     <script src="game.js"></script>
-    
 </body>
 </html>
