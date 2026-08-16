@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>3D Zombie City Survival</title>
+    <!-- Thư viện Three.js chuẩn qua CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Poki SDK -->
     <script src="https://game-sdk.poki.com/js/v2.js"></script>
     <style>
         body { margin: 0; overflow: hidden; background: #000; user-select: none; font-family: Arial, sans-serif; }
@@ -46,34 +48,41 @@
 
         const textureLoader = new THREE.TextureLoader();
 
-        // 1. Dùng ĐÚNG ảnh map.jpg làm mặt phẳng 3D
-        const mapTexture = textureLoader.load('map.jpg');
+        // 1. Tạo Map từ map.jpg
         const ground = new THREE.Mesh(
             new THREE.PlaneGeometry(100, 100),
-            new THREE.MeshBasicMaterial({ map: mapTexture })
+            new THREE.MeshBasicMaterial({ map: textureLoader.load('map.jpg') })
         );
         ground.rotation.x = -Math.PI / 2;
         scene.add(ground);
 
-        // 2. Dùng ĐÚNG ảnh player.png (nhân vật cầm súng)
-        const playerTexture = textureLoader.load('player.png');
-        const player = new THREE.Sprite(new THREE.SpriteMaterial({ map: playerTexture }));
-        player.scale.set(5, 5, 1);
-        player.position.y = 2.5;
-        scene.add(player);
+        // 2. Tạo Nhóm Nhân vật + Súng dính chặt với nhau
+        const playerGroup = new THREE.Group();
+        scene.add(playerGroup);
 
-        // 3. Dùng ĐÚNG ảnh zombie.png cho lũ zombie
-        const zombieTexture = textureLoader.load('zombie.png');
+        // Nhân vật (player.png)
+        const player = new THREE.Sprite(new THREE.SpriteMaterial({ map: textureLoader.load('player.png') }));
+        player.scale.set(4, 4, 1);
+        player.position.y = 2;
+        playerGroup.add(player);
+
+        // Súng trên tay nhân vật (gun.png)
+        const gun = new THREE.Sprite(new THREE.SpriteMaterial({ map: textureLoader.load('gun.png') }));
+        gun.scale.set(1.5, 1.5, 1);
+        gun.position.set(0.8, 1.5, 0.5); // Vị trí trên tay nhân vật
+        playerGroup.add(gun);
+
+        // 3. Tạo Đàn Zombie từ zombie.png
         let zombies = [];
+        const zombieMaterial = new THREE.SpriteMaterial({ map: textureLoader.load('zombie.png') });
         for (let i = 0; i < 8; i++) {
-            let zombie = new THREE.Sprite(new THREE.SpriteMaterial({ map: zombieTexture }));
+            let zombie = new THREE.Sprite(zombieMaterial);
             zombie.scale.set(4, 4, 1);
             zombie.position.set((Math.random() - 0.5) * 50, 2, (Math.random() - 0.5) * 50);
             scene.add(zombie);
             zombies.push(zombie);
         }
 
-        // Đạn và hệ thống ngắm bắn
         let bullets = [];
         let score = 0;
         let hp = 100;
@@ -87,15 +96,15 @@
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
         });
 
-        // Bắn súng khi click chuột
+        // Click chuột để bắn đạn
         window.addEventListener('mousedown', () => {
             let bullet = new THREE.Mesh(
                 new THREE.SphereGeometry(0.3, 8, 8),
                 new THREE.MeshBasicMaterial({ color: 0xfacc15 })
             );
-            bullet.position.copy(player.position);
+            bullet.position.copy(playerGroup.position);
+            bullet.position.y = 2;
             
-            // Hướng đạn bay theo góc nhìn chuột
             let angle = Math.atan2(mouse.x, mouse.y);
             bullet.userData = { 
                 vx: Math.sin(angle) * 0.8, 
@@ -108,22 +117,21 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Di chuyển nhân vật
-            if (keys['KeyW'] || keys['ArrowUp']) player.position.z -= 0.4;
-            if (keys['KeyS'] || keys['ArrowDown']) player.position.z += 0.4;
-            if (keys['KeyA'] || keys['ArrowLeft']) player.position.x -= 0.4;
-            if (keys['KeyD'] || keys['ArrowRight']) player.position.x += 0.4;
+            // Di chuyển nhân vật và súng cùng lúc qua Group
+            if (keys['KeyW'] || keys['ArrowUp']) playerGroup.position.z -= 0.4;
+            if (keys['KeyS'] || keys['ArrowDown']) playerGroup.position.z += 0.4;
+            if (keys['KeyA'] || keys['ArrowLeft']) playerGroup.position.x -= 0.4;
+            if (keys['KeyD'] || keys['ArrowRight']) playerGroup.position.x += 0.4;
 
-            // Camera đuổi theo và xoay theo vị trí nhân vật
-            camera.position.set(player.position.x, player.position.y + 12, player.position.z + 14);
-            camera.lookAt(player.position);
+            // Camera đuổi theo nhân vật
+            camera.position.set(playerGroup.position.x, playerGroup.position.y + 12, playerGroup.position.z + 14);
+            camera.lookAt(playerGroup.position);
 
-            // Cập nhật đạn bay
+            // Đạn bay và chạm zombie
             bullets.forEach((b, index) => {
                 b.position.x += b.userData.vx;
                 b.position.z += b.userData.vz;
 
-                // Kiểm tra đạn trúng zombie
                 zombies.forEach((z, zIndex) => {
                     if (b.position.distanceTo(z.position) < 2) {
                         scene.remove(z);
@@ -136,12 +144,12 @@
                 });
             });
 
-            // Zombie đuổi theo nhân vật
+            // Zombie rượt đuổi
             zombies.forEach(z => {
-                z.position.x += (player.position.x - z.position.x) * 0.012;
-                z.position.z += (player.position.z - z.position.z) * 0.012;
+                z.position.x += (playerGroup.position.x - z.position.x) * 0.012;
+                z.position.z += (playerGroup.position.z - z.position.z) * 0.012;
 
-                if (player.position.distanceTo(z.position) < 1.5) {
+                if (playerGroup.position.distanceTo(z.position) < 1.5) {
                     hp -= 0.5;
                     document.getElementById("hp").innerText = Math.max(0, Math.floor(hp));
                     if (hp <= 0) {
