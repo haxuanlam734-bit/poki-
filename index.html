@@ -5,7 +5,6 @@ let cat = { x: 100, y: 400, vx: 0, vy: 0, radius: 25, isFlying: false };
 let isDragging = false;
 let startX = 0, startY = 0;
 
-// Xử lý kéo thả để bắn mèo
 canvas.addEventListener("mousedown", (e) => {
     if (!cat.isFlying) {
         isDragging = true;
@@ -18,7 +17,7 @@ canvas.addEventListener("mouseup", (e) => {
     if (isDragging) {
         let dx = startX - e.clientX;
         let dy = startY - e.clientY;
-        cat.vx = dx * 0.15; // Lực bắn theo hướng kéo ngược lại
+        cat.vx = dx * 0.15;
         cat.vy = dy * 0.15;
         cat.isFlying = true;
         isDragging = false;
@@ -27,17 +26,16 @@ canvas.addEventListener("mouseup", (e) => {
 
 function update() {
     if (cat.isFlying) {
-        cat.vy += 0.4; // Trọng lực hút xuống
+        cat.vy += 0.4;
         cat.x += cat.vx;
         cat.y += cat.vy;
 
-        // Chạm đất thì kết thúc ván chơi (Hiển thị màn hình thua & gọi quảng cáo)
         if (cat.y > 550) {
             cat.y = 550;
             cat.isFlying = false;
             cat.vx = 0;
             cat.vy = 0;
-            showGameOverMenu(); // Gọi hàm hiển thị điểm và nút xem quảng cáo hồi sinh
+            showGameOverMenu();
         }
     }
 }
@@ -45,7 +43,6 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Vẽ chú mèo
     ctx.fillStyle = "#f97316";
     ctx.beginPath();
     ctx.arc(cat.x, cat.y, cat.radius, 0, Math.PI * 2);
@@ -61,6 +58,5 @@ function gameLoop() {
 gameLoop();
 
 function showGameOverMenu() {
-    // Logic hiện popup thua cuộc và tích hợp Poki SDK Reward Ad ở đây
-    console.log("Game Over! Mời xem quảng cáo để hồi sinh.");
+    console.log("Game Over!");
 }
