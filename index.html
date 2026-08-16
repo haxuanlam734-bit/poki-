@@ -2,19 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickman Neon Hook: Siêu Phẩm Đu Dây</title>
+    <title>Blocky Bike: Parkour Extreme</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
-        <div id="score-board">Điểm: <span id="score">0</span></div>
+        <div id="ui">Điểm: <span id="score">0</span> | Vượt: <span id="level">1</span></div>
         <canvas id="gameCanvas" width="900" height="600"></canvas>
-        <div id="game-over-screen" class="hidden">
-            <h1>GAME OVER</h1>
-            <p>Điểm kỷ lục của bạn: <span id="final-score">0</span></p>
-            <button onclick="restartGame()">CHƠI LẠI NGAY</button>
-        </div>
     </div>
     <script src="game.js"></script>
 </body>
