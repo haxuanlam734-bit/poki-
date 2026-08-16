@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Blocky Bike: Parkour Extreme</title>
+    <title>Zombie City Survival</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Poki SDK -->
+    <script src="https://game-sdk.poki.com/js/v2.js"></script>
 </head>
 <body>
-    <div id="game-container">
-        <div id="ui">Điểm: <span id="score">0</span> | Vượt: <span id="level">1</span></div>
-        <canvas id="gameCanvas" width="900" height="600"></canvas>
-    </div>
-    <script src="game.js"></script>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        // Khởi tạo Poki SDK
+        PokiSDK.init().then(() => { console.log("Poki SDK ready"); }).catch(() => { console.log("Poki SDK offline"); });
+    </script>
+    <script src="js/zombie.js"></script>
+    <script src="js/game.js"></script>
 </body>
 </html>
