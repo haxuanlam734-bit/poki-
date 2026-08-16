@@ -1,62 +1,19 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Catapult Cat Game</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #333; }
+        canvas { background: #87CEEB; border: 4px solid #fff; }
+    </style>
+</head>
+<body>
 
-let cat = { x: 100, y: 400, vx: 0, vy: 0, radius: 25, isFlying: false };
-let isDragging = false;
-let startX = 0, startY = 0;
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-canvas.addEventListener("mousedown", (e) => {
-    if (!cat.isFlying) {
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-    }
-});
-
-canvas.addEventListener("mouseup", (e) => {
-    if (isDragging) {
-        let dx = startX - e.clientX;
-        let dy = startY - e.clientY;
-        cat.vx = dx * 0.15;
-        cat.vy = dy * 0.15;
-        cat.isFlying = true;
-        isDragging = false;
-    }
-});
-
-function update() {
-    if (cat.isFlying) {
-        cat.vy += 0.4;
-        cat.x += cat.vx;
-        cat.y += cat.vy;
-
-        if (cat.y > 550) {
-            cat.y = 550;
-            cat.isFlying = false;
-            cat.vx = 0;
-            cat.vy = 0;
-            showGameOverMenu();
-        }
-    }
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    <!-- Dòng này quan trọng: nó kết nối trang web với file game.js của bạn -->
+    <script src="game.js"></script>
     
-    ctx.fillStyle = "#f97316";
-    ctx.beginPath();
-    ctx.arc(cat.x, cat.y, cat.radius, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
-gameLoop();
-
-function showGameOverMenu() {
-    console.log("Game Over!");
-}
+</body>
+</html>
