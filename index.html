@@ -1,224 +1,55 @@
 <!doctype html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Anime Stick Clash</title>
-<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b18;font-family:system-ui,Segoe UI,Arial,sans-serif;color:#fff}
-body{display:flex;align-items:center;justify-content:center}
-#wrap{position:relative;width:min(100vw,1280px);aspect-ratio:16/9;max-height:100vh;background:#10152c;overflow:hidden;border-radius:16px;box-shadow:0 0 50px #000}
-canvas{display:block;width:100%;height:100%;touch-action:none}
-#hud{position:absolute;inset:0;pointer-events:none}
-.top{position:absolute;left:2.5%;right:2.5%;top:2.5%;display:flex;justify-content:space-between;align-items:flex-start}
-.card{background:rgba(10,14,32,.72);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);border-radius:14px;padding:9px 12px;box-shadow:0 8px 25px rgba(0,0,0,.25)}
-#stats{min-width:220px}.name{font-weight:900;letter-spacing:.5px}.bar{height:9px;border-radius:99px;background:#252b45;margin-top:5px;overflow:hidden}.fill{height:100%;width:100%;transition:width .15s}.hp{background:linear-gradient(90deg,#ff3d67,#ff9f43)}.en{background:linear-gradient(90deg,#38d9ff,#8b5cf6)}
-#wave{text-align:center;font-weight:900;font-size:20px}.small{font-size:12px;opacity:.7}
-#coins{font-weight:900;color:#ffd86b}
-#menu,#gameover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,rgba(76,38,150,.45),rgba(4,6,16,.92) 68%)}
-.panel{width:min(520px,88%);text-align:center;background:rgba(13,17,38,.9);border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:28px;box-shadow:0 25px 80px #000}
-h1{margin:0 0 7px;font-size:clamp(34px,6vw,62px);line-height:1;font-weight:1000;letter-spacing:-2px;background:linear-gradient(90deg,#fff,#b5b7ff,#6ee7ff);-webkit-background-clip:text;color:transparent}
-.subtitle{opacity:.72;margin-bottom:22px}.btn{border:0;border-radius:14px;padding:13px 22px;margin:6px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:white;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 10px 25px rgba(73,54,190,.3)}.btn:hover{transform:translateY(-1px)}.btn.alt{background:#202744}.hint{font-size:12px;opacity:.55;margin-top:14px;line-height:1.5}
-#controls{position:absolute;left:3%;right:3%;bottom:3%;display:none;justify-content:space-between;pointer-events:auto}
-.pad{display:flex;gap:10px}.touch{width:58px;height:58px;border-radius:50%;border:1px solid rgba(255,255,255,.16);background:rgba(12,16,36,.65);color:#fff;font-weight:1000;font-size:20px;backdrop-filter:blur(7px);touch-action:none}.touch.attack{width:72px;height:72px;background:linear-gradient(135deg,rgba(124,58,237,.85),rgba(37,99,235,.85))}
-@media(max-width:800px){#controls{display:flex}.card{padding:6px 8px}.top{top:2%}#stats{min-width:155px}.small{font-size:10px}#wave{font-size:15px}}
-#toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);font-weight:1000;font-size:24px;text-shadow:0 3px 15px #000;opacity:0;transition:.25s;pointer-events:none}
-</style>
+<title>Anime Stick Clash V3</title>
+<link rel="stylesheet" href="src/style.css">
 </head>
 <body>
-<div id="wrap">
-<canvas id="c" width="1280" height="720"></canvas>
-<div id="hud">
-  <div class="top">
-    <div class="card" id="stats"><div class="name">KAI • SHADOW RUNNER</div><div class="bar"><div id="hp" class="fill hp"></div></div><div class="bar"><div id="en" class="fill en"></div></div></div>
-    <div class="card" id="wave">WAVE <span id="wn">1</span><div class="small">SPACE / ⚔ ATTACK • SHIFT DASH • Q ULT</div></div>
-    <div class="card" id="coins">✦ <span id="coin">0</span></div>
+<div id="app">
+<canvas id="game" width="1280" height="720"></canvas>
+
+<section id="lobby" class="screen">
+  <div class="nav"><div class="logo">ANIME<span>STICK</span><b> CLASH</b></div><div class="wallet">✦ <strong id="lobbyCoins">1250</strong></div></div>
+  <div class="lobbyGrid">
+    <div class="showcase glass">
+      <div class="season">SEASON 01 / SHADOW DISTRICT</div>
+      <h1>AWAKEN<br><em>YOUR AURA.</em></h1>
+      <p>Stickman anime fighter tốc độ cao. Combo, aerial juggle, parry, dash và những ultimate có hiệu ứng VFX.</p>
+      <div class="buttons">
+        <button id="playBtn" class="primary">⚔ VÀO ARENA</button>
+        <button id="dailyBtn" class="secondary">🎁 DAILY REWARD</button>
+      </div>
+      <div class="featureRow"><span>⚡ 5 SKILLS</span><span>🔥 COMBOS</span><span>👹 ELITE BOSS</span><span>🌌 VFX</span></div>
+    </div>
+    <div class="roster glass">
+      <h2>CHOOSE FIGHTER</h2>
+      <div id="roster"></div>
+      <div class="build">
+        <div><label>POWER</label><div class="meter"><i id="power"></i></div></div>
+        <div><label>DEFENSE</label><div class="meter"><i id="defense"></i></div></div>
+        <div><label>SPEED</label><div class="meter"><i id="speed"></i></div></div>
+      </div>
+    </div>
   </div>
-  <div id="toast"></div>
-</div>
-<div id="controls">
-  <div class="pad"><button class="touch" data-k="ArrowLeft">◀</button><button class="touch" data-k="ArrowRight">▶</button><button class="touch" data-k="ArrowUp">▲</button></div>
-  <div class="pad"><button class="touch" data-k="Shift">✦</button><button class="touch attack" data-k="Space">⚔</button><button class="touch attack" data-k="KeyQ">Q</button></div>
-</div>
-<div id="menu"><div class="panel">
-  <h1>ANIME STICK CLASH</h1>
-  <div class="subtitle">Stick-figure arena fighter • original anime-inspired world</div>
-  <button class="btn" id="play">START FIGHT</button>
-  <button class="btn alt" id="reward">WATCH AD • +150 ✦</button>
-  <div class="hint">Desktop: A/D hoặc ←/→ di chuyển • W/↑ nhảy • Space đánh • Shift lướt • Q tuyệt kỹ.<br>Mobile: dùng các nút cảm ứng.</div>
-</div></div>
-<div id="gameover" style="display:none"><div class="panel">
-  <h1>DEFEATED</h1><div class="subtitle" id="score"></div>
-  <button class="btn" id="again">REVENGE</button>
-  <button class="btn alt" id="reward2">WATCH AD • REVIVE</button>
-</div></div>
-</div>
-<script>
-(() => {
-const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-const W=1280,H=720,ground=590;
-let keys={},running=false,paused=false,adReady=false;
-let wave=1,coins=0,score=0,shake=0,spawnTimer=0;
-let enemies=[],particles=[],slashes=[];
-const player={x:250,y:ground-92,vx:0,vy:0,hp:100,maxHp:100,en:100,maxEn:100,face:1,attack:0,attackCd:0,dash:0,ult:0,inv:0,combo:0,comboT:0};
+</section>
 
-function sdkInit(){
-  if(!window.PokiSDK)return Promise.resolve();
-  return PokiSDK.init().catch(()=>{});
-}
-sdkInit().then(()=>{adReady=true; if(window.PokiSDK)PokiSDK.gameLoadingFinished();});
+<section id="hud" class="hidden">
+  <div class="hudTop">
+    <div class="playerCard glass"><b id="fighterName"></b><div class="bar"><i id="hp"></i></div><div class="bar energy"><i id="energy"></i></div></div>
+    <div class="wave glass">WAVE <strong id="wave">1</strong><small> A/D · W · SPACE · SHIFT · Q E R</small></div>
+    <div class="wallet glass">✦ <strong id="coins">1250</strong></div>
+  </div>
+  <div id="combo"></div>
+  <div id="skills"></div>
+  <div id="mobile"></div>
+</section>
 
-function ad(type,cb){
-  paused=true;
-  if(window.PokiSDK){
-    try{
-      PokiSDK.gameplayStop();
-      const p=type==='reward'
-        ? PokiSDK.rewardedBreak({size:'medium'})
-        : PokiSDK.commercialBreak();
-      Promise.resolve(p).then(ok=>{paused=false;if(cb)cb(type==='reward'?!!ok:true); if(window.PokiSDK)PokiSDK.gameplayStart();});
-    }catch(e){paused=false;if(cb)cb(false)}
-  }else{setTimeout(()=>{paused=false;if(cb)cb(true)},500)}
-}
-function startGame(){
-  document.getElementById('menu').style.display='none';document.getElementById('gameover').style.display='none';
-  wave=1;coins=0;score=0;enemies=[];particles=[];slashes=[];resetPlayer();spawnWave();running=true;
-  if(window.PokiSDK)PokiSDK.gameplayStart();
-}
-function resetPlayer(){Object.assign(player,{x:250,y:ground-92,vx:0,vy:0,hp:100,en:100,face:1,attack:0,attackCd:0,dash:0,ult:0,inv:0,combo:0,comboT:0});}
-function spawnWave(){
-  const n=Math.min(3+Math.floor(wave*1.25),11);
-  for(let i=0;i<n;i++){
-    const elite=wave%5===0&&i===n-1;
-    enemies.push({x:850+i*65,y:ground-(elite?118:82),vx:0,vy:0,hp:elite?150+wave*12:55+wave*8,maxHp:elite?150+wave*12:55+wave*8,
-      speed:elite?1.15:1.5+Math.random()*.6,face:-1,atk:0,atkCd:30+Math.random()*40,elite});
-  }
-  toast('WAVE '+wave);
-}
-function nextWave(){
-  wave++;coins+=25+wave*4; document.getElementById('wn').textContent=wave;
-  if(wave>1)ad('commercial',()=>{});
-  spawnWave();
-}
-function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.opacity=1;setTimeout(()=>e.style.opacity=0,850)}
-function burst(x,y,n=12,life=35){
-  for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-.5)*9,vy:(Math.random()-.8)*8,life:life*(.6+Math.random()*.6),max:life,size:2+Math.random()*5});
-}
-function hitEnemy(e,dmg,knock=6){
-  e.hp-=dmg;e.vx+=player.face*knock;burst(e.x,e.y+35,8,22);shake=7;
-  if(e.hp<=0){score+=e.elite?500:100;coins+=e.elite?45:10;burst(e.x,e.y+30,24,42);}
-}
-function attack(){
-  if(player.attackCd>0||paused)return;
-  player.attack=13;player.attackCd=22;player.en=Math.min(100,player.en+3);player.combo=Math.min(5,player.combo+1);player.comboT=45;
-  for(const e of enemies){
-    const dx=e.x-player.x,dy=Math.abs((e.y+40)-(player.y+40));
-    if(Math.abs(dx)<125&&dy<80&&Math.sign(dx||1)===player.face)hitEnemy(e,18+player.combo*3,7);
-  }
-  slashes.push({x:player.x+player.face*65,y:player.y+38,face:player.face,t:12});
-  burst(player.x+player.face*55,player.y+38,5,15);
-}
-function dash(){
-  if(player.dash<=0&&player.en>=18){player.en-=18;player.dash=12;player.inv=14;player.vx=player.face*16;burst(player.x,player.y+50,16,22)}
-}
-function ult(){
-  if(player.ult<=0&&player.en>=65){player.en-=65;player.ult=80;player.inv=80;shake=18;toast('VOID NOVA!');
-    for(const e of enemies) if(Math.abs(e.x-player.x)<360)hitEnemy(e,70+wave*5,12);
-    burst(player.x,player.y+35,50,60);
-  }
-}
-function input(){
-  const left=keys.ArrowLeft||keys.KeyA,right=keys.ArrowRight||keys.KeyD;
-  if(left){player.vx-=.75;player.face=-1} if(right){player.vx+=.75;player.face=1}
-  player.vx*=.86;player.vx=Math.max(-7,Math.min(7,player.vx));
-  if((keys.ArrowUp||keys.KeyW)&&player.y>=ground-93)player.vy=-14;
-}
-function update(){
-  if(!running||paused)return;
-  input();
-  if(keys.Space){attack();keys.Space=false}
-  if(keys.Shift){dash();keys.Shift=false}
-  if(keys.KeyQ){ult();keys.KeyQ=false}
-  player.attackCd=Math.max(0,player.attackCd-1);player.attack=Math.max(0,player.attack-1);player.dash=Math.max(0,player.dash-1);player.inv=Math.max(0,player.inv-1);
-  player.comboT--;if(player.comboT<=0)player.combo=0;
-  player.vy+=.7;player.y+=player.vy;if(player.y>ground-93){player.y=ground-93;player.vy=0}
-  player.x+=player.vx;player.x=Math.max(70,Math.min(W-70,player.x));
-  player.en=Math.min(100,player.en+.08);
-  for(const e of enemies){
-    e.atkCd--;e.x+=e.vx;e.vx*=.88;
-    const dx=player.x-e.x;
-    if(Math.abs(dx)>85){e.vx+=(dx>0?1:-1)*.08*e.speed;e.face=dx>0?1:-1}
-    else if(e.atkCd<=0){e.atkCd=70+Math.random()*30;e.atk=15;
-      if(player.inv<=0){player.hp-=e.elite?13:8;player.vx=e.face*5;burst(player.x,player.y+35,7,20);shake=6}
-    }
-    e.atk=Math.max(0,e.atk-1);
-  }
-  enemies=enemies.filter(e=>e.hp>0);
-  if(enemies.length===0)nextWave();
-  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.vx*=.98;p.life--} particles=particles.filter(p=>p.life>0);
-  for(const s of slashes)s.t--;slashes=slashes.filter(s=>s.t>0);
-  shake*=.88;
-  if(player.hp<=0){gameOver();}
-  document.getElementById('hp').style.width=(player.hp)+'%';document.getElementById('en').style.width=(player.en)+'%';document.getElementById('coin').textContent=coins;
-}
-function gameOver(){
-  running=false; if(window.PokiSDK)PokiSDK.gameplayStop();
-  document.getElementById('score').textContent=`Wave ${wave} • Score ${score} • ✦ ${coins}`;
-  document.getElementById('gameover').style.display='flex';
-}
-function draw(){
-  ctx.save();
-  const sx=(Math.random()-.5)*shake,sy=(Math.random()-.5)*shake;ctx.translate(sx,sy);
-  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#111733');g.addColorStop(1,'#28134b');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  // moon + skyline
-  ctx.fillStyle='rgba(128,111,255,.18)';ctx.beginPath();ctx.arc(1010,150,90,0,Math.PI*2);ctx.fill();
-  for(let i=0;i<18;i++){let x=i*80;let h=60+(i*37%150);ctx.fillStyle='rgba(8,10,25,.7)';ctx.fillRect(x,ground-h,65,h)}
-  ctx.fillStyle='#111425';ctx.fillRect(0,ground,W,H-ground);
-  ctx.strokeStyle='rgba(126,109,255,.18)';ctx.lineWidth=2;
-  for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,ground);ctx.lineTo(x+180,H);ctx.stroke()}
-  drawStick(player.x,player.y,player.face,true);
-  for(const e of enemies)drawEnemy(e);
-  for(const s of slashes){ctx.save();ctx.translate(s.x,s.y);ctx.scale(s.face,1);ctx.strokeStyle='rgba(110,231,255,.9)';ctx.lineWidth=9;ctx.beginPath();ctx.arc(0,0,55,-.8,.6);ctx.stroke();ctx.restore()}
-  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle='#9be7ff';ctx.fillRect(p.x,p.y,p.size,p.size);ctx.globalAlpha=1}
-  ctx.restore();
-}
-function drawStick(x,y,face,hero){
-  ctx.save();ctx.translate(x,y);ctx.scale(face,1);
-  const glow=hero&&player.ult>0;ctx.strokeStyle=glow?'#e9d5ff':'#dbeafe';ctx.fillStyle=glow?'#8b5cf6':'#0b1025';ctx.lineWidth=hero?8:7;ctx.lineCap='round';
-  if(glow){ctx.shadowBlur=25;ctx.shadowColor='#8b5cf6'}
-  ctx.beginPath();ctx.arc(0,15,25,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,40);ctx.lineTo(0,105);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,60);ctx.lineTo(35,75);ctx.moveTo(0,60);ctx.lineTo(-28,72);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,105);ctx.lineTo(28,135);ctx.moveTo(0,105);ctx.lineTo(-25,135);ctx.stroke();
-  if(hero){ctx.strokeStyle='#67e8f9';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(28,135);ctx.lineTo(45,128);ctx.stroke()}
-  ctx.restore();
-}
-function drawEnemy(e){
-  ctx.save();ctx.translate(e.x,e.y);ctx.scale(e.face,1);
-  ctx.strokeStyle=e.elite?'#f43f5e':'#fca5a5';ctx.fillStyle=e.elite?'#3b0b22':'#220e20';ctx.lineWidth=e.elite?10:7;ctx.lineCap='round';
-  ctx.beginPath();ctx.arc(0,15,e.elite?30:23,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,40);ctx.lineTo(0,95+(e.elite?25:0));ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,60);ctx.lineTo(35,72);ctx.moveTo(0,60);ctx.lineTo(-28,76);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,95+(e.elite?25:0));ctx.lineTo(27,128+(e.elite?20:0));ctx.moveTo(0,95+(e.elite?25:0));ctx.lineTo(-25,128+(e.elite?20:0));ctx.stroke();
-  ctx.fillStyle='#ff3d67';ctx.fillRect(-35,-13,70,5);ctx.fillStyle='#fff';ctx.fillRect(-35,-13,70*Math.max(0,e.hp/e.maxHp),5);
-  ctx.restore();
-}
-function loop(){update();draw();requestAnimationFrame(loop)} loop();
-
-document.getElementById('play').onclick=()=>ad('commercial',startGame);
-document.getElementById('again').onclick=()=>ad('commercial',startGame);
-document.getElementById('reward').onclick=()=>ad('reward',ok=>{if(ok){coins+=150;toast('+150 ✦');}});
-document.getElementById('reward2').onclick=()=>ad('reward',ok=>{if(ok){player.hp=100;running=true;document.getElementById('gameover').style.display='none';if(window.PokiSDK)PokiSDK.gameplayStart();toast('REVIVED!');}});
-window.addEventListener('keydown',e=>{keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault()});
-window.addEventListener('keyup',e=>keys[e.code]=false);
-document.querySelectorAll('.touch').forEach(b=>{
-  const k=b.dataset.k;
-  b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});
-  b.addEventListener('pointerup',e=>{e.preventDefault();keys[k]=false});
-  b.addEventListener('pointercancel',()=>keys[k]=false);b.addEventListener('pointerleave',()=>keys[k]=false);
-});
-})();
-</script>
-</body>
-</html>
+<section id="result" class="screen hidden">
+ <div class="result glass"><div class="season">ARENA RESULT</div><h2 id="resultTitle">DEFEATED</h2><p id="resultText"></p><button id="lobbyBtn" class="primary">⌂ SẢNH CHỜ</button><button id="reviveBtn" class="secondary">▶ REVIVE</button></div>
+</section>
+<div id="toast"></div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body></html>
