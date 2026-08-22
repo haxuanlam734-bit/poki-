@@ -1,0 +1,949 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #050812;
+
+    font-family:
+        Inter,
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+body {
+    color: #fff;
+}
+
+button {
+    font: inherit;
+}
+
+#app {
+    position: fixed;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            #111d3d 0%,
+            #070b17 45%,
+            #03050b 100%
+        );
+}
+
+#gameCanvas {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    touch-action: none;
+}
+
+#ui {
+    position: absolute;
+
+    inset: 0;
+
+    pointer-events: none;
+}
+
+.screen {
+    position: absolute;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-direction: column;
+
+    pointer-events: auto;
+
+    z-index: 20;
+}
+
+.screen.active {
+    display: flex;
+}
+
+.screen.overlay {
+    background:
+        rgba(2,5,12,.78);
+
+    backdrop-filter: blur(12px);
+}
+
+.backgroundGlow {
+    position: absolute;
+
+    width: 55vw;
+    height: 55vw;
+
+    max-width: 700px;
+    max-height: 700px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(40,130,255,.2),
+            transparent 68%
+        );
+
+    filter: blur(20px);
+
+    pointer-events: none;
+}
+
+.logo {
+    position: relative;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    font-weight: 1000;
+
+    letter-spacing: .12em;
+
+    line-height: .85;
+
+    text-align: center;
+
+    text-transform: uppercase;
+}
+
+.logo span {
+    font-size:
+        clamp(36px, 8vw, 90px);
+
+    color: #fff;
+
+    text-shadow:
+        0 0 10px #57b7ff,
+        0 0 30px #2779ff,
+        0 0 70px rgba(39,121,255,.7);
+}
+
+.logo strong {
+    font-size:
+        clamp(42px, 10vw, 115px);
+
+    color: #6fc7ff;
+
+    text-shadow:
+        0 0 12px #4caeff,
+        0 0 40px #1768ff;
+}
+
+.tagline {
+    position: relative;
+
+    margin-top: 22px;
+
+    color: #7183a5;
+
+    font-size: 11px;
+
+    letter-spacing: .4em;
+}
+
+.menuButtons {
+    position: relative;
+
+    width:
+        min(320px, 80vw);
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-top: 45px;
+}
+
+.button {
+    min-height: 52px;
+
+    padding: 0 25px;
+
+    border:
+        1px solid
+        rgba(102,164,255,.28);
+
+    border-radius: 10px;
+
+    color: #dbeaff;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(24,42,70,.95),
+            rgba(11,20,35,.95)
+        );
+
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.08),
+        0 8px 30px rgba(0,0,0,.3);
+
+    cursor: pointer;
+
+    font-weight: 800;
+
+    font-size: 13px;
+
+    letter-spacing: .12em;
+
+    transition:
+        transform .15s ease,
+        border-color .15s ease,
+        box-shadow .15s ease;
+}
+
+.button:hover {
+    transform: translateY(-2px);
+
+    border-color: #64b7ff;
+
+    box-shadow:
+        0 0 25px rgba(54,145,255,.25);
+}
+
+.button:active {
+    transform: scale(.98);
+}
+
+.button.primary {
+    color: #fff;
+
+    border-color: #358eff;
+
+    background:
+        linear-gradient(
+            180deg,
+            #3189ff,
+            #1748bc
+        );
+
+    box-shadow:
+        0 0 25px rgba(41,121,255,.25);
+}
+
+.button.large {
+    min-width: 240px;
+
+    margin-top: 20px;
+}
+
+.version {
+    position: absolute;
+
+    bottom: 18px;
+
+    color: #3e4c63;
+
+    font-size: 10px;
+
+    letter-spacing: .2em;
+}
+
+.screenHeader {
+    position: absolute;
+
+    top: 25px;
+
+    left: 25px;
+    right: 25px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+.screenHeader h1 {
+    font-size:
+        clamp(20px, 4vw, 34px);
+
+    letter-spacing: .12em;
+}
+
+.iconButton {
+    position: absolute;
+
+    left: 0;
+
+    width: 45px;
+    height: 45px;
+
+    border-radius: 50%;
+
+    border: 1px solid #30415f;
+
+    color: #fff;
+
+    background: #0d1626;
+
+    cursor: pointer;
+
+    font-size: 20px;
+}
+
+.characterGrid {
+    width:
+        min(1000px, 92vw);
+
+    max-height: 70vh;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 16px;
+
+    margin-top: 55px;
+
+    overflow-y: auto;
+}
+
+.characterCard {
+    min-height: 350px;
+
+    padding: 18px;
+
+    border:
+        1px solid
+        #253652;
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #101a2d,
+            #080e19
+        );
+
+    cursor: pointer;
+
+    transition: .2s;
+
+    overflow: hidden;
+}
+
+.characterCard:hover,
+.characterCard.selected {
+    transform: translateY(-4px);
+
+    border-color: #55aaff;
+
+    box-shadow:
+        0 0 35px
+        rgba(64,148,255,.2);
+}
+
+.characterVisual {
+    height: 190px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    position: relative;
+}
+
+.characterAura {
+    position: absolute;
+
+    width: 120px;
+    height: 120px;
+
+    border-radius: 50%;
+
+    filter: blur(25px);
+
+    opacity: .5;
+}
+
+.characterStick {
+    position: relative;
+
+    width: 80px;
+
+    height: 150px;
+
+    z-index: 2;
+}
+
+.characterStick .head {
+    position: absolute;
+
+    top: 0;
+    left: 22px;
+
+    width: 36px;
+    height: 36px;
+
+    border:
+        5px solid #fff;
+
+    border-radius: 50%;
+}
+
+.characterStick .body {
+    position: absolute;
+
+    top: 35px;
+    left: 38px;
+
+    width: 5px;
+    height: 65px;
+
+    background: #fff;
+}
+
+.characterStick .arm,
+.characterStick .leg {
+    position: absolute;
+
+    width: 5px;
+
+    background: #fff;
+
+    transform-origin: top;
+}
+
+.characterStick .arm {
+    top: 42px;
+    height: 50px;
+}
+
+.characterStick .arm.left {
+    left: 38px;
+
+    transform:
+        rotate(55deg);
+}
+
+.characterStick .arm.right {
+    left: 38px;
+
+    transform:
+        rotate(-55deg);
+}
+
+.characterStick .leg {
+    top: 96px;
+    height: 55px;
+}
+
+.characterStick .leg.left {
+    left: 38px;
+
+    transform:
+        rotate(30deg);
+}
+
+.characterStick .leg.right {
+    left: 38px;
+
+    transform:
+        rotate(-30deg);
+}
+
+.characterName {
+    font-size: 23px;
+
+    font-weight: 1000;
+
+    margin-bottom: 5px;
+}
+
+.characterRole {
+    color: #7184a4;
+
+    font-size: 11px;
+
+    margin-bottom: 15px;
+}
+
+.controlsPanel {
+    width:
+        min(500px, 90vw);
+
+    margin-top: 60px;
+
+    padding: 25px;
+
+    border:
+        1px solid
+        #253652;
+
+    border-radius: 15px;
+
+    background:
+        rgba(10,17,29,.85);
+}
+
+.controlsPanel div {
+    min-height: 42px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+.controlsPanel span {
+    margin-left: 10px;
+
+    color: #8497b7;
+
+    font-size: 13px;
+}
+
+kbd {
+    min-width: 34px;
+
+    height: 30px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 0 7px;
+
+    border-radius: 6px;
+
+    border:
+        1px solid
+        #3a4d6c;
+
+    color: #fff;
+
+    background: #111c2e;
+
+    font-size: 10px;
+
+    font-weight: 900;
+}
+
+/* HUD */
+
+.battleHUD {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+    display: none;
+}
+
+.battleHUD.active {
+    display: block;
+}
+
+.fighterStatus {
+    position: absolute;
+
+    top: 20px;
+
+    width: 35vw;
+
+    max-width: 480px;
+}
+
+.playerStatus {
+    left: 20px;
+}
+
+.enemyStatus {
+    right: 20px;
+
+    text-align: right;
+}
+
+.fighterName {
+    margin-bottom: 6px;
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    letter-spacing: .16em;
+}
+
+.bar {
+    height: 13px;
+
+    margin-bottom: 4px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    background: #101827;
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+}
+
+.bar div {
+    width: 100%;
+    height: 100%;
+
+    transform-origin: left;
+
+    transition:
+        transform .12s linear;
+}
+
+.bar.hp div {
+    background:
+        linear-gradient(
+            90deg,
+            #ff3657,
+            #ff785e
+        );
+}
+
+.bar.ki {
+    height: 7px;
+}
+
+.bar.ki div {
+    background:
+        linear-gradient(
+            90deg,
+            #249fff,
+            #78eaff
+        );
+}
+
+.bar.transform {
+    height: 5px;
+}
+
+.bar.transform div {
+    background:
+        linear-gradient(
+            90deg,
+            #9d3cff,
+            #ffdc61
+        );
+}
+
+.comboCounter {
+    position: absolute;
+
+    top: 21%;
+
+    left: 50%;
+
+    transform:
+        translateX(-50%)
+        scale(.8);
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    opacity: 0;
+
+    transition: .15s;
+}
+
+.comboCounter.active {
+    opacity: 1;
+
+    transform:
+        translateX(-50%)
+        scale(1);
+}
+
+.comboCounter strong {
+    font-size: 40px;
+
+    color: #fff;
+
+    text-shadow:
+        0 0 20px #43b5ff;
+}
+
+.comboCounter span {
+    color: #73a5d5;
+
+    font-size: 9px;
+
+    letter-spacing: .3em;
+}
+
+.pauseButton {
+    position: absolute;
+
+    top: 80px;
+    right: 20px;
+
+    width: 40px;
+    height: 40px;
+
+    border-radius: 50%;
+
+    border:
+        1px solid
+        #354863;
+
+    color: #fff;
+
+    background: #0c1524;
+
+    pointer-events: auto;
+
+    cursor: pointer;
+}
+
+.skillBar {
+    position: absolute;
+
+    bottom: 18px;
+    left: 50%;
+
+    transform:
+        translateX(-50%);
+
+    display: flex;
+
+    gap: 6px;
+
+    pointer-events: auto;
+}
+
+.skill {
+    width: 57px;
+    height: 57px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-direction: column;
+
+    position: relative;
+
+    border:
+        1px solid
+        rgba(125,174,235,.25);
+
+    border-radius: 9px;
+
+    background:
+        rgba(7,13,24,.9);
+}
+
+.skillKey {
+    font-weight: 900;
+
+    font-size: 13px;
+}
+
+.skillName {
+    max-width: 50px;
+
+    overflow: hidden;
+
+    color: #687d9e;
+
+    font-size: 7px;
+
+    margin-top: 4px;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+}
+
+.skillCooldown {
+    position: absolute;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: inherit;
+
+    color: #fff;
+
+    background:
+        rgba(0,0,0,.72);
+
+    font-size: 15px;
+
+    font-weight: 900;
+}
+
+.skill.cooling .skillCooldown {
+    display: flex;
+}
+
+.transformButton {
+    position: absolute;
+
+    right: 20px;
+    bottom: 18px;
+
+    width: 105px;
+    height: 57px;
+
+    border:
+        1px solid
+        #bb54ff;
+
+    border-radius: 10px;
+
+    color: #fff;
+
+    background:
+        linear-gradient(
+            180deg,
+            #48185e,
+            #200b2f
+        );
+
+    pointer-events: auto;
+
+    cursor: pointer;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: .1em;
+}
+
+.transformButton small {
+    color: #d89aff;
+
+    font-size: 9px;
+}
+
+#resultTitle {
+    font-size:
+        clamp(45px, 9vw, 100px);
+
+    font-weight: 1000;
+
+    color: #fff;
+
+    text-shadow:
+        0 0 20px #4caeff,
+        0 0 60px #246fff;
+}
+
+#resultSubtitle {
+    margin: 10px 0 30px;
+
+    color: #7183a5;
+
+    letter-spacing: .2em;
+
+    font-size: 11px;
+}
+
+@media(max-width:800px) {
+
+    .characterGrid {
+        grid-template-columns: 1fr;
+
+        max-height: 68vh;
+    }
+
+    .characterCard {
+        min-height: 180px;
+
+        display: grid;
+
+        grid-template-columns:
+            140px 1fr;
+    }
+
+    .characterVisual {
+        height: 145px;
+    }
+
+    .fighterStatus {
+        width: 42vw;
+
+        top: 10px;
+    }
+
+    .playerStatus {
+        left: 10px;
+    }
+
+    .enemyStatus {
+        right: 10px;
+    }
+
+    .skillBar {
+        bottom: 100px;
+
+        transform:
+            translateX(-50%)
+            scale(.82);
+    }
+
+    .transformButton {
+        right: 10px;
+
+        bottom: 30px;
+    }
+}
