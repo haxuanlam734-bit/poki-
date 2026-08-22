@@ -1,1 +1,0 @@
-export const fighters={kai:{name:"KAI • VOID DAGGER",color:"#67e8ff"},rei:{name:"REI • FLAME BLADE",color:"#ff704d"},yuki:{name:"YUKI • FROST CARD",color:"#a7efff"}};export const skills=[["attack","⚔","SPACE"],["dash","➤","SHIFT"],["crescent","〽","Q"],["burst","✦","E"],["throw","▣","R"]];
