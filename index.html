@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anime Stick Clash — PRO</title>
+<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body><main id="app">
+<canvas id="game" width="1280" height="720"></canvas>
+<div id="boot" class="overlay"><div class="logo">ANIME<span>STICK</span><b> CLASH</b></div><div class="loader"><i id="loader"></i></div><small>INITIALIZING COMBAT SYSTEM</small></div>
+<section id="lobby" class="overlay hidden">
+<header><div class="brand">ANIME<span>STICK</span> CLASH</div><div class="currency">✦ <b id="coins">1250</b></div></header>
+<div class="lobbyGrid">
+<div class="hero card"><div class="eyebrow">SEASON 01 • NEON ABYSS</div><h1>BREAK<br><em>THE LIMIT.</em></h1><p>High-speed stick fighter combat with cinematic abilities, aerial chains, impact frames and boss waves.</p><div><button id="play" class="primary">⚔ PLAY ARENA</button><button id="daily" class="secondary">🎁 DAILY</button></div><div class="tags"><span>10+ COMBOS</span><span>ULTIMATES</span><span>ELITES</span><span>VFX</span></div></div>
+<div class="fighter card"><h3>FIGHTER</h3><div id="fighters"></div><div class="stat"><label>POWER</label><i id="power"></i></div><div class="stat"><label>SPEED</label><i id="speed"></i></div><div class="stat"><label>DEFENSE</label><i id="defense"></i></div></div>
+</div></section>
+<section id="hud" class="hidden">
+<div class="topHud"><div class="player card"><b id="name">KAI</b><div class="hp"><i id="hp"></i></div><div class="en"><i id="en"></i></div></div><div class="wave card">WAVE <b id="wave">1</b><small>A/D MOVE · W JUMP · SPACE ATTACK · Q/E/R SKILLS</small></div><button id="pause">Ⅱ</button></div>
+<div id="boss" class="boss hidden"><b id="bossName">ELITE</b><div><i id="bossHp"></i></div></div><div id="combo"></div><div id="skills"></div>
+<div class="mobile"><div><button data-k="left">◀</button><button data-k="right">▶</button></div><div><button data-k="jump">▲</button><button data-k="attack">⚔</button><button data-k="dash">➤</button></div></div>
+</section>
+<div id="pausePanel" class="overlay hidden"><div class="modal card"><span class="eyebrow">PAUSED</span><h2>ARENA PAUSED</h2><button id="resume" class="primary">RESUME</button><button id="toLobby" class="secondary">LOBBY</button></div></div>
+<div id="result" class="overlay hidden"><div class="modal card"><span class="eyebrow">RESULT</span><h2 id="resultTitle">DEFEATED</h2><p id="resultText"></p><button id="revive" class="primary">REVIVE • AD</button><button id="retry" class="secondary">RETRY</button><button id="resultLobby" class="secondary">LOBBY</button></div></div>
+<div id="toast"></div><div id="ad" class="hidden">AD BREAK</div>
+</main><script type="module" src="src/main.js"></script></body></html>
