@@ -1,1 +1,0 @@
-export class Combat{constructor(v,c){this.v=v;this.cam=c;this.stop=0}tick(){if(this.stop>0){this.stop--;return true}return false}impact(x,y,color,heavy){this.v.burst(x,y,color,heavy?50:18,heavy?14:7);this.v.flash(x,y,"#fff");this.cam.kick(heavy?18:6);this.stop=heavy?7:3}}
