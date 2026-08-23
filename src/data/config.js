@@ -1,2 +1,0 @@
-export const F={void:{name:'KAGE',title:'VOID BLADE',c:'#a78bfa',speed:5.1,pow:1.12},frost:{name:'YUKI',title:'FROST EDGE',c:'#61e8ff',speed:5.6,pow:1},flame:{name:'REI',title:'EMBER RONIN',c:'#fb7185',speed:4.8,pow:1.2},solar:{name:'RAI',title:'SOLAR FIST',c:'#fbbf24',speed:5,pow:1.15},aqua:{name:'AO',title:'TIDAL ORB',c:'#60a5fa',speed:5.3,pow:1.04}};
-export const S=[['attack','SPACE','✦'],['dash','SHIFT','➤'],['q','Q','◈'],['e','E','✦'],['r','R','☄']];

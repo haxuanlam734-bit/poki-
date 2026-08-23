@@ -1,2 +1,0 @@
-export const CFG={speed:330,heroRadius:22,maxHp:100,maxMana:100,enemyHp:42,spawnRate:1.0,arenaPad:70,
-skills:{Q:{cost:12,cd:.45},E:{cost:20,cd:2.2},R:{cost:35,cd:5.2},F:{cost:50,cd:8},T:{cost:28,cd:3.5}}};
