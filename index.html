@@ -1,1 +1,63 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Anime Stick Clash V8</title><link rel="stylesheet" href="./src/style.css"></head><body><div id="boot"><strong>ANIME <i>STICK</i> CLASH</strong><div class="load"><span id="load"></span></div><small>COMBAT ENGINE</small></div><main id="lobby" class="hide"><header><b>ASC <em>V8</em></b><div>COINS <strong id="coins">1250</strong> · BEST <strong id="best">0</strong></div></header><section class="hero"><div><small>ANIME ACTION ARENA</small><h1>STICK FIGHTERS<br><i>UNLEASHED</i></h1><p>Fast combos · cinematic skills · living stickmen</p><button id="play">PLAY NOW ▶</button><button id="daily">DAILY +250</button></div><div id="preview"><span></span><b id="previewName">KAGE</b></div></section><section><h2>FIGHTERS <small>SELECT YOUR STYLE</small></h2><div id="roster"></div></section></main><div id="arena" class="hide"><canvas id="c" width="1280" height="720"></canvas><div class="hud"><div class="card"><b id="name">KAGE</b><small id="title">VOID BLADE</small><div><i id="hp"></i><i id="en"></i></div></div><div class="wave">WAVE <b id="wave">1</b></div><div id="combo">0 <small>HIT</small></div><button id="pause">Ⅱ</button><div id="skills"></div></div></div><div id="overlay" class="hide"><div><small>ARENA</small><h2 id="result">PAUSED</h2><button id="resume">RESUME</button><button id="back">LOBBY</button></div></div><div id="toast"></div><script type="module" src="./src/main.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#070816">
+<title>Anime Stick Clash — V9 PRO</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Anime Stick Clash"></canvas>
+  <div id="boot"><div class="boot-logo">ANIME <b>STICK</b> CLASH</div><div class="boot-bar"><i></i></div><small>V9 PRO • loading combat engine</small></div>
+  <section id="lobby" class="screen hidden">
+    <div class="brand"><span>ANIME</span> STICK <em>CLASH</em><small>NEON BLADE ARENA</small></div>
+    <div class="lobby-grid">
+      <div class="panel hero-panel">
+        <div class="eyebrow">HUNTER LOUNGE</div>
+        <h1>Choose your fighter</h1>
+        <p class="muted">Train in the lobby, then enter endless waves. Every fighter has a different rhythm.</p>
+        <div id="fighterCards" class="fighter-cards"></div>
+        <div class="actions"><button id="startBtn" class="primary">ENTER ARENA <span>→</span></button><button id="dailyBtn" class="ghost">DAILY +250</button></div>
+      </div>
+      <div class="panel profile-panel">
+        <div class="profile-top"><div class="avatar" id="profileAvatar">K</div><div><b id="profileName">KAGE</b><small id="profileTitle">VOID EDGE</small></div></div>
+        <div class="stat"><span>COINS</span><strong id="coins">0</strong></div>
+        <div class="stat"><span>BEST WAVE</span><strong id="best">0</strong></div>
+        <div class="tip"><b>CONTROLS</b><br>WASD / arrows move • J attack • Space jump • Shift dash • Q E R skills • P pause</div>
+        <div class="poki-slot">ADVERTISEMENT<br><small>Poki SDK safe wrapper ready</small></div>
+      </div>
+    </div>
+  </section>
+  <section id="hud" class="hidden">
+    <div class="hud-left panel">
+      <div class="fighter-name" id="hudName">KAGE • VOID EDGE</div>
+      <div class="bars"><div class="hp"><i id="hpFill"></i></div><div class="energy"><i id="energyFill"></i></div></div>
+    </div>
+    <div class="wave panel"><small>WAVE</small><b id="waveNum">1</b><span id="waveState">READY</span></div>
+    <div class="combo hidden" id="combo"><b id="comboNum">0</b><span>HIT COMBO</span></div>
+    <div class="pause panel" id="pauseBtn">Ⅱ</div>
+    <div class="skills">
+      <button data-skill="Q"><b>Q</b><span>VOID CUT</span></button>
+      <button data-skill="E"><b>E</b><span>PHANTOM</span></button>
+      <button data-skill="R"><b>R</b><span>DOMAIN</span></button>
+    </div>
+    <div class="mobile-controls"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="j">⚔</button><button data-key="space">↟</button></div>
+  </section>
+  <section id="gameover" class="screen hidden">
+    <div class="panel result"><div class="eyebrow">RUN COMPLETE</div><h1>WAVE <span id="resultWave">1</span></h1><p id="resultText">Good fight.</p><div class="result-stats"><span>COINS <b id="resultCoins">0</b></span><span>BEST <b id="resultBest">0</b></span></div><button id="retryBtn" class="primary">RUN IT BACK →</button><button id="lobbyBtn" class="ghost">RETURN TO LOBBY</button></div>
+  </section>
+  <div id="toast"></div>
+</div>
+<script src="src/data.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/vfx.js"></script>
+<script src="src/entities.js"></script>
+<script src="src/combat.js"></script>
+<script src="src/world.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/game.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>

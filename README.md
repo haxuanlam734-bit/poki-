@@ -1,7 +1,17 @@
-# Anime Stick Clash V8 REBUILD
+# Anime Stick Clash V9 PRO
 
-GitHub Pages ready. Upload the CONTENTS of this folder to repository root so `index.html`, `assets/`, and `src/` are at the same level.
+Static GitHub Pages game. No build step and no external libraries.
 
-Controls: A/D or arrows, W/Up jump, Space combo, Shift dash, Q/E/R skills.
+## Upload
+Put `index.html`, `style.css`, `assets/`, and `src/` directly at repository root.
 
-This build is a visual/gameplay rebuild: animated stick fighters, distinct VFX, combo system, dash, skills, ultimate, camera/impact feedback, lobby and roster.
+## Controls
+WASD / arrows = move
+J/K = attack
+Space / W / Up = jump
+Shift = dash
+Q / E / R = skills
+P = pause
+
+## Notes
+The Poki area is intentionally a safe placeholder/wrapper point. Real Poki monetization requires the publisher's approved Poki SDK/integration and account configuration; the game does not depend on it to boot.
