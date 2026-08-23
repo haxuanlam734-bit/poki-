@@ -1,0 +1,1 @@
+export const Poki={async init(){try{await window.PokiSDK?.init?.()}catch{}},load(){try{window.PokiSDK?.gameLoadingFinished?.()}catch{}},start(){try{window.PokiSDK?.gameplayStart?.()}catch{}},stop(){try{window.PokiSDK?.gameplayStop?.()}catch{}},async ad(){try{if(window.PokiSDK?.commercialBreak)await window.PokiSDK.commercialBreak()}catch{}}};
