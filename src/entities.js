@@ -1,2 +1,31 @@
-class Stickman{constructor(x,y,c="#72efff",scale=1){this.x=x;this.y=y;this.vx=0;this.vy=0;this.color=c;this.scale=scale;this.face=1;this.hp=100;this.maxHp=100;this.hitFlash=0;this.anim="idle";this.t=0;this.grounded=true;this.inv=0}update(dt){this.t+=dt;this.hitFlash=Math.max(0,this.hitFlash-dt);this.inv=Math.max(0,this.inv-dt);this.vy+=900*dt;this.x+=this.vx*dt;this.y+=this.vy*dt;if(this.y>0){this.y=0;this.vy=0;this.grounded=true}else this.grounded=false;this.vx*=Math.pow(.001,dt)}draw(ctx){let s=this.scale,x=this.x,y=this.y,run=Math.sin(this.t*14)*(Math.abs(this.vx)>.5?1:0),bob=Math.sin(this.t*7)*2;ctx.save();ctx.translate(x,y+bob);ctx.scale(this.face*s,s);ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle=this.hitFlash>0?"#fff":this.color;ctx.shadowColor=this.color;ctx.shadowBlur=18;ctx.lineWidth=7;ctx.beginPath();ctx.arc(0,-82,17,0,7);ctx.stroke();ctx.beginPath();ctx.moveTo(0,-64);ctx.lineTo(0,-28);ctx.moveTo(0,-53);ctx.lineTo(-25,-35-run*7);ctx.moveTo(0,-53);ctx.lineTo(25,-35+run*7);ctx.moveTo(0,-28);ctx.lineTo(-22,5+run*9);ctx.moveTo(0,-28);ctx.lineTo(22,5-run*9);ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(6,-84,3,0,7);ctx.fill();ctx.restore()}}
-class Enemy extends Stickman{constructor(x,y,def){super(x,y,def.color,def.kind==="tank"?1.25:1);this.kind=def.kind;this.maxHp=def.hp;this.hp=def.hp;this.speed=def.speed;this.power=def.power;this.attackTimer=Math.random()*.8;this.dead=false}updateAI(dt,target){if(this.dead)return;let dx=target.x-this.x;this.face=dx>=0?1:-1;let d=Math.abs(dx);if(d>65)this.vx=this.face*this.speed*55;else{this.vx=0;this.attackTimer-=dt;if(this.attackTimer<=0){this.attackTimer=this.kind==="runner"?1.1:1.5;target.takeDamage(this.power)}}super.update(dt)}}window.Stickman=Stickman;window.Enemy=Enemy;
+import {rand,dist,norm} from "./math.js";
+export class Enemy{
+  constructor(x,y,type=0){this.x=x;this.y=y;this.type=type;this.r=type?27:23;this.hp=type?85:55;this.maxHp=this.hp;this.dead=false;this.hit=0;this.vx=0;this.vy=0;this.tint=type?"#ff5b8e":"#ff314f"}
+  update(dt,p){
+    const d=dist(this,p),n=norm(p.x-this.x,p.y-this.y);
+    if(d>100){this.vx+=n.x*90*dt;this.vy+=n.y*90*dt}
+    this.vx*=Math.pow(.86,dt*60);this.vy*=Math.pow(.86,dt*60);this.x+=this.vx*dt;this.y+=this.vy*dt;this.hit=Math.max(0,this.hit-dt)
+  }
+  hurt(d,kx,ky){this.hp-=d;this.vx+=kx;this.vy+=ky;this.hit=.12;if(this.hp<=0)this.dead=true}
+  draw(ctx){
+    ctx.save();ctx.translate(this.x,this.y);ctx.shadowColor=this.tint;ctx.shadowBlur=this.hit?35:12;
+    ctx.strokeStyle=this.hit?"#fff":this.tint;ctx.lineWidth=8;ctx.lineCap="round";
+    ctx.beginPath();ctx.arc(0,-28,this.r*.55,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(0,34);ctx.moveTo(0,6);ctx.lineTo(-24,20);ctx.moveTo(0,6);ctx.lineTo(24,20);ctx.moveTo(0,34);ctx.lineTo(-20,58);ctx.moveTo(0,34);ctx.lineTo(20,58);ctx.stroke();
+    ctx.restore()
+  }
+}
+export class Player{
+  constructor(){this.x=0;this.y=0;this.r=25;this.hp=120;this.energy=100;this.facing=1;this.inv=0;this.dash=0;this.after=[]}
+  update(dt,input){
+    let x=(input.d?1:0)-(input.a?1:0),y=(input.s?1:0)-(input.w?1:0);const n=norm(x,y);
+    if(x||y){this.x+=n.x*280*dt;this.y+=n.y*280*dt;this.facing=n.x<0?-1:1}
+    this.inv=Math.max(0,this.inv-dt);this.energy=Math.min(100,this.energy+10*dt);
+    this.after=this.after.filter(a=>(a.life-=dt)>0)
+  }
+  draw(ctx){
+    for(const a of this.after){ctx.save();ctx.globalAlpha=a.life*.45;this._drawBody(ctx,a.x,a.y,"#35a9ff");ctx.restore()}
+    ctx.save();this._drawBody(ctx,this.x,this.y,"#67eaff");ctx.restore()
+  }
+  _drawBody(ctx,x,y,c){ctx.translate(x,y);ctx.shadowColor=c;ctx.shadowBlur=28;ctx.strokeStyle=c;ctx.lineWidth=9;ctx.lineCap="round";ctx.beginPath();ctx.arc(0,-31,15,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(0,-15);ctx.lineTo(0,30);ctx.moveTo(0,0);ctx.lineTo(-25,17);ctx.moveTo(0,0);ctx.lineTo(27,15);ctx.moveTo(0,30);ctx.lineTo(-20,58);ctx.moveTo(0,30);ctx.lineTo(20,58);ctx.stroke();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-5,-34,2,0,Math.PI*2);ctx.arc(5,-34,2,0,Math.PI*2);ctx.fill()}
+}

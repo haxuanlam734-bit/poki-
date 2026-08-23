@@ -1,1 +1,5 @@
-window.addEventListener("error",e=>{console.error(e.error||e.message);let b=document.getElementById("boot");if(b){b.innerHTML='<div class="boot-logo">ANIME <b>STICK</b> CLASH</div><small style="color:#ff7d9c">BOOT ERROR — press Ctrl+F5 and check F12 Console</small>'}});window.addEventListener("load",()=>{setTimeout(()=>{let boot=document.getElementById("boot");boot.classList.add("hidden");window.GAME=new Game()},900)}) ;
+import {Game} from "./game.js";
+import {Poki} from "./poki.js";
+const boot=document.getElementById("boot"),hud=document.getElementById("hud"),start=document.getElementById("startBtn");
+const game=new Game(document.getElementById("game"));
+start.onclick=async()=>{await Poki.init();boot.classList.add("hidden");hud.classList.remove("hidden");game.start()};

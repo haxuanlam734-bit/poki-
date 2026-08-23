@@ -1,1 +1,58 @@
-class Game{constructor(){this.canvas=document.getElementById("game");this.ctx=this.canvas.getContext("2d");this.ui=new UI(this);this.coins=Number(localStorage.getItem("asc_coins")||0);this.best=Number(localStorage.getItem("asc_best")||0);this.running=false;this.paused=false;this.last=performance.now();this.keys={};this.cooldowns={Q:0,E:0,R:0};this.resize();addEventListener("resize",()=>this.resize());this.bindKeys();this.ui.showLobby();requestAnimationFrame(t=>this.loop(t))}resize(){this.canvas.width=Math.floor(innerWidth*devicePixelRatio);this.canvas.height=Math.floor(innerHeight*devicePixelRatio);this.ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);this.w=innerWidth;this.h=innerHeight}bindKeys(){addEventListener("keydown",e=>{let k=e.key.toLowerCase();if([" ","arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();if(k==="p")this.togglePause();if(k==="q"||k==="e"||k==="r")this.skill(k.toUpperCase());this.keys[k]=true;if(k==="j"||k==="k")this.attack();if(k==="shift")this.dash();if(k===" ")this.jump()});addEventListener("keyup",e=>this.keys[e.key.toLowerCase()]=false)}input(k){this.keys[k]=true;if(k==="j")this.attack();if(k==="space")this.jump()}inputUp(k){this.keys[k]=false}start(){let f=ASC.fighters[this.ui.selected];this.player=new Stickman(0,0,f.color,1);this.player.maxHp=130;this.player.hp=130;this.player.maxEnergy=f.energy;this.player.energy=f.energy;this.player.power=f.power;this.player.speed=f.speed;this.player.color=f.color;this.player.face=1;this.cooldowns={Q:0,E:0,R:0};this.world=new World(this);this.running=true;this.paused=false;this.ui.showHud();SFX.init();this.ui.toast("WAVE 1 — FIGHT!")}toLobby(){this.running=false;this.ui.showLobby()}togglePause(){if(!this.running)return;this.paused=!this.paused;this.ui.toast(this.paused?"PAUSED":"RESUME")}attack(){if(!this.running||this.paused)return;Combat.basic(this);this.player.energy=Math.min(this.player.maxEnergy,this.player.energy+6)}dash(){if(!this.running||this.paused)return;this.player.vx=this.player.face*900;this.player.inv=.25;VFX.trail(this.player.x,this.player.y-45,this.player.x-this.player.face*80,this.player.y-45,this.player.color);SFX.dash()}jump(){if(this.player&&this.player.grounded){this.player.vy=-570;this.player.grounded=false}}skill(k){if(this.running&&!this.paused)Combat.skill(this,k)}update(dt){if(!this.running||this.paused)return;let p=this.player;let dir=(this.keys.d||this.keys.arrowright?1:0)-(this.keys.a||this.keys.arrowleft?1:0);if(dir){p.face=dir;p.vx=dir*p.speed*55;p.anim="run"}else if(p.anim==="run")p.anim="idle";if(this.keys.w||this.keys.arrowup)this.jump();p.energy=Math.min(p.maxEnergy,p.energy+10*dt);for(const k of Object.keys(this.cooldowns))this.cooldowns[k]=Math.max(0,this.cooldowns[k]-dt);p.update(dt);p.x=Math.max(-this.w*.45,Math.min(this.w*.45,p.x));this.world.update(dt);if(p.hp<=0)this.end()}end(){this.running=false;let w=this.world.wave;if(w>this.best){this.best=w;localStorage.setItem("asc_best",this.best)}localStorage.setItem("asc_coins",this.coins);this.ui.showOver(w,this.coins,this.best)}draw(){let c=this.ctx;c.clearRect(0,0,this.w,this.h);let g=c.createLinearGradient(0,0,0,this.h);g.addColorStop(0,"#08091b");g.addColorStop(1,"#02030a");c.fillStyle=g;c.fillRect(0,0,this.w,this.h);this.drawArena(c);if(this.running){let shake=this.world.shake; c.save();c.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);this.player.draw(c);for(const e of this.world.enemies)e.draw(c);c.restore();VFX.draw(c);if(this.world.screenFlash>0){c.fillStyle="#fff";c.globalAlpha=this.world.screenFlash*2;c.fillRect(0,0,this.w,this.h);c.globalAlpha=1}}}drawArena(c){let ground=this.h*.72;c.fillStyle="#080d1c";c.fillRect(0,ground,this.w,this.h-ground);c.strokeStyle="#243052";c.lineWidth=2;c.beginPath();c.moveTo(0,ground);c.lineTo(this.w,ground);c.stroke();for(let i=-10;i<20;i++){let x=this.w/2+i*90;c.strokeStyle="#111a31";c.beginPath();c.moveTo(this.w/2,ground);c.lineTo(x,this.h);c.stroke()}for(let i=0;i<8;i++){let x=(i/7)*this.w;c.fillStyle=i%2?"#15102a":"#0e1830";c.beginPath();c.arc(x,this.h*.34,80+i*12,0,7);c.fill()}}loop(t){let dt=Math.min(.033,(t-this.last)/1000);this.last=t;this.update(dt);this.draw();this.ui.update();requestAnimationFrame(x=>this.loop(x))}}window.Game=Game;
+import {CONFIG} from "./config.js";
+import {rand,clamp,dist} from "./math.js";
+import {VFX} from "./vfx.js";
+import {Player} from "./entities.js";
+import {Enemy} from "./entities.js";
+import {Combat} from "./combat.js";
+import {Poki} from "./poki.js";
+
+export class Game{
+ constructor(canvas){
+  this.c=canvas;this.ctx=canvas.getContext("2d");this.vfx=new VFX();this.player=new Player();this.enemies=[];
+  this.combat=new Combat(this);this.input={};this.wave=1;this.spawn=0;this.combo=0;this.comboT=0;this.damage=[];this.shake=0;this.paused=false;this.time=0;
+  this.cool={Q:0,E:0,R:0};this.bind();this.resize();addEventListener("resize",()=>this.resize())
+ }
+ bind(){
+  addEventListener("keydown",e=>{this.input[e.key.toLowerCase()]=true;if(["q","e","r"," "].includes(e.key.toLowerCase()))e.preventDefault();if(e.key.toLowerCase()==="q")this.skill("Q");if(e.key.toLowerCase()==="e")this.skill("E");if(e.key.toLowerCase()==="r")this.skill("R");if(e.key===" ")this.combat.basic();});
+  addEventListener("keyup",e=>this.input[e.key.toLowerCase()]=false);
+  document.querySelectorAll("[data-skill]").forEach(b=>b.onclick=()=>this.skill(b.dataset.skill));
+  document.getElementById("pauseBtn").onclick=()=>this.paused=!this.paused;
+ }
+ resize(){this.c.width=innerWidth*devicePixelRatio;this.c.height=innerHeight*devicePixelRatio;this.ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);this.w=innerWidth;this.h=innerHeight}
+ start(){this.running=true;this.last=performance.now();Poki.gameplayStart();requestAnimationFrame(t=>this.loop(t))}
+ loop(t){if(!this.running)return;const dt=Math.min(.033,(t-this.last)/1000);this.last=t;if(!this.paused)this.update(dt);this.draw();requestAnimationFrame(x=>this.loop(x))}
+ update(dt){
+  this.time+=dt;this.cool.Q=Math.max(0,this.cool.Q-dt);this.cool.E=Math.max(0,this.cool.E-dt);this.cool.R=Math.max(0,this.cool.R-dt);
+  this.player.update(dt,this.input);this.player.x=clamp(this.player.x,60,this.w-60);this.player.y=clamp(this.player.y,150,this.h-150);
+  this.spawn-=dt;if(this.spawn<=0&&this.enemies.length<Math.min(3+this.wave,12)){this.spawn=CONFIG.arena.enemySpawn;this.spawnEnemy()}
+  for(const e of this.enemies)e.update(dt,this.player);
+  this.enemies=this.enemies.filter(e=>!e.dead);
+  this.vfx.update(dt);this.comboT-=dt;if(this.comboT<=0)this.combo=0;this.damage=this.damage.filter(d=>(d.life-=dt)>0);this.shake=Math.max(0,this.shake-dt*45);
+  if(this.enemies.length===0&&this.spawn>0&&this.wave<99){this.wave++;this.player.energy=Math.min(100,this.player.energy+20);this.spawn=.8;flash("WAVE "+this.wave)}
+  document.getElementById("hpBar").style.width=(this.player.hp/120*100)+"%";document.getElementById("enBar").style.width=(this.player.energy/100*100)+"%";document.getElementById("wave").textContent=this.wave;document.getElementById("combo").textContent=this.combo;
+  for(const k of ["Q","E","R"]){document.getElementById(k.toLowerCase()+"Cd").style.width=(this.cool[k]/CONFIG.skills[k].cooldown*100)+"%"}
+ }
+ spawnEnemy(){const side=Math.random()<.5?-1:1;this.enemies.push(new Enemy(side<0?-50:this.w+50,rand(220,this.h-190),Math.random()<.18?1:0))}
+ skill(k){if(!this.running||this.paused)return;const s=CONFIG.skills[k];if(this.cool[k]>0||this.player.energy<s.cost)return;this.player.energy-=s.cost;this.cool[k]=s.cooldown;if(k==="Q")this.combat.Q();if(k==="E")this.combat.E();if(k==="R")this.combat.R();Poki.happyTime()}
+ addDamage(x,y,d){this.damage.push({x,y,d,life:.7})}
+ draw(){
+  const ctx=this.ctx,w=this.w,h=this.h;ctx.clearRect(0,0,w,h);ctx.save();
+  const sx=rand(-this.shake,this.shake),sy=rand(-this.shake,this.shake);ctx.translate(sx,sy);
+  this.background(ctx,w,h);
+  for(const e of this.enemies)this.drawEnemyHp(ctx,e);
+  this.player.draw(ctx);for(const e of this.enemies)e.draw(ctx);this.vfx.draw(ctx);
+  for(const d of this.damage){ctx.globalAlpha=d.life/.7;ctx.fillStyle="#fff";ctx.font="900 18px Arial";ctx.textAlign="center";ctx.fillText(d.d,d.x,d.y-(.7-d.life)*55)}
+  ctx.restore()
+ }
+ background(ctx,w,h){
+  const g=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.7);g.addColorStop(0,"#14102d");g.addColorStop(.5,"#09091c");g.addColorStop(1,"#03040d");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  // Three large concept-style colored circles
+  const circles=[[.16,.43,180,"#29154d"],[.36,.43,170,"#111d47"],[.54,.43,175,"#32142e"],[.71,.43,185,"#36251d"],[.89,.43,200,"#10224a"]];
+  for(const [x,y,r,c] of circles){ctx.globalAlpha=.58;ctx.fillStyle=c;ctx.beginPath();ctx.arc(w*x,h*y,r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
+  const horizon=h*.75;ctx.strokeStyle="#15213e";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,horizon);ctx.lineTo(w,horizon);ctx.stroke();
+  for(let x=-w;x<w*2;x+=CONFIG.arena.grid){ctx.beginPath();ctx.moveTo(w/2,horizon);ctx.lineTo(x,h);ctx.stroke()}
+  for(let y=horizon;y<h;y+=30){ctx.globalAlpha=.55;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.globalAlpha=1;
+ }
+ drawEnemyHp(ctx,e){ctx.fillStyle="#ff5577";ctx.fillRect(e.x-25,e.y-70,50,4);ctx.fillStyle="#45f5c5";ctx.fillRect(e.x-25,e.y-70,50*Math.max(0,e.hp/e.maxHp),4)}
+}
+function flash(text){const m=document.getElementById("message");m.textContent=text;m.classList.remove("msg-show");void m.offsetWidth;m.classList.add("msg-show")}
