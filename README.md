@@ -1,19 +1,5 @@
-# Anime Stick Clash V13 — ULTRA
-Static HTML5 canvas game, no build step.
+# Stick Clash: Nova Arena
 
-## Controls
-WASD / arrows = move
-SPACE = dash
-Q = Star Rend
-E = Prism Rush
-R = Void Nova
-F = Celestial
-T = Chroma Burst
+Controls: A/D move, W jump, J punch, K kick, L blast, Space dash, I ultimate.
 
-## GitHub Pages
-Upload the CONTENTS of this folder to the repository root:
-index.html, style.css, assets/, src/
-Then enable GitHub Pages from Settings → Pages → Deploy from branch → main → /root.
-
-## Poki
-`src/poki.js` is an adapter placeholder. Use the official Poki SDK code provided to your developer/publisher account before publishing ads.
+This is an original stick-fighter prototype with articulated limb animation, hit detection, AI, particles, projectiles and Poki SDK lifecycle calls. The art/animations are original rather than copied frame-for-frame from another game.
