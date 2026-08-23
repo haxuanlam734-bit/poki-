@@ -1,58 +1,40 @@
-import {CONFIG} from "./config.js";
-import {rand,clamp,dist} from "./math.js";
-import {VFX} from "./vfx.js";
-import {Player} from "./entities.js";
-import {Enemy} from "./entities.js";
-import {Combat} from "./combat.js";
-import {Poki} from "./poki.js";
-
+import {CFG} from './config.js';
+import {Fighter} from './entities.js';
+import {VFX} from './vfx.js';
+import {Combat} from './combat.js';
+import {rand,clamp,angle} from './math.js';
 export class Game{
- constructor(canvas){
-  this.c=canvas;this.ctx=canvas.getContext("2d");this.vfx=new VFX();this.player=new Player();this.enemies=[];
-  this.combat=new Combat(this);this.input={};this.wave=1;this.spawn=0;this.combo=0;this.comboT=0;this.damage=[];this.shake=0;this.paused=false;this.time=0;
-  this.cool={Q:0,E:0,R:0};this.bind();this.resize();addEventListener("resize",()=>this.resize())
- }
- bind(){
-  addEventListener("keydown",e=>{this.input[e.key.toLowerCase()]=true;if(["q","e","r"," "].includes(e.key.toLowerCase()))e.preventDefault();if(e.key.toLowerCase()==="q")this.skill("Q");if(e.key.toLowerCase()==="e")this.skill("E");if(e.key.toLowerCase()==="r")this.skill("R");if(e.key===" ")this.combat.basic();});
-  addEventListener("keyup",e=>this.input[e.key.toLowerCase()]=false);
-  document.querySelectorAll("[data-skill]").forEach(b=>b.onclick=()=>this.skill(b.dataset.skill));
-  document.getElementById("pauseBtn").onclick=()=>this.paused=!this.paused;
- }
- resize(){this.c.width=innerWidth*devicePixelRatio;this.c.height=innerHeight*devicePixelRatio;this.ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);this.w=innerWidth;this.h=innerHeight}
- start(){this.running=true;this.last=performance.now();Poki.gameplayStart();requestAnimationFrame(t=>this.loop(t))}
- loop(t){if(!this.running)return;const dt=Math.min(.033,(t-this.last)/1000);this.last=t;if(!this.paused)this.update(dt);this.draw();requestAnimationFrame(x=>this.loop(x))}
+ constructor(c){this.c=c;this.x=c.getContext('2d');this.w=innerWidth;this.h=innerHeight;this.vfx=new VFX();this.skills=CFG.skills;this.cool={Q:0,E:0,R:0,F:0,T:0};this.keys={};this.enemies=[];this.running=false;this.paused=false;this.spawn=0;this.waveN=1;this.combo=0;this.comboT=0;this.shake=0;this.hero=new Fighter(this.w*.45,this.h*.58,false);this.hero.rot=0;this.combat=new Combat(this);this.resize();addEventListener('resize',()=>this.resize())}
+ resize(){this.w=innerWidth;this.h=innerHeight;this.c.width=this.w*devicePixelRatio;this.c.height=this.h*devicePixelRatio;this.x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);this.w=innerWidth;this.h=innerHeight}
+ start(){this.running=true;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
+ input(k,v){this.keys[k]=v}
+ togglePause(){this.paused=!this.paused}
+ dash(){if(this.hero.mana>=8){this.hero.mana-=8;this.hero.vx=Math.cos(this.hero.rot)*850;this.hero.vy=Math.sin(this.hero.rot)*850;this.vfx.spark(this.hero.x,this.hero.y,'#62efff',20,260)}}
+ cast(k){if(this.running&&!this.paused)this.combat.cast(k)}
+ spawnEnemy(){let side=Math.floor(rand(0,4)),x=side<2?rand(60,this.w-60):(side===2?30:this.w-30),y=side<2?(side?this.h-120:130):rand(150,this.h-120);this.enemies.push(new Fighter(x,y,true))}
+ damageHero(n){this.hero.damage(n,this)}
+ kill(e){this.combo++;this.comboT=2.5;this.vfx.spark(e.x,e.y,'#ff5b9f',45,390);this.vfx.ring(e.x,e.y,'#ff5b9f',120);this.hero.mana=clamp(this.hero.mana+5,0,100)}
  update(dt){
-  this.time+=dt;this.cool.Q=Math.max(0,this.cool.Q-dt);this.cool.E=Math.max(0,this.cool.E-dt);this.cool.R=Math.max(0,this.cool.R-dt);
-  this.player.update(dt,this.input);this.player.x=clamp(this.player.x,60,this.w-60);this.player.y=clamp(this.player.y,150,this.h-150);
-  this.spawn-=dt;if(this.spawn<=0&&this.enemies.length<Math.min(3+this.wave,12)){this.spawn=CONFIG.arena.enemySpawn;this.spawnEnemy()}
-  for(const e of this.enemies)e.update(dt,this.player);
-  this.enemies=this.enemies.filter(e=>!e.dead);
-  this.vfx.update(dt);this.comboT-=dt;if(this.comboT<=0)this.combo=0;this.damage=this.damage.filter(d=>(d.life-=dt)>0);this.shake=Math.max(0,this.shake-dt*45);
-  if(this.enemies.length===0&&this.spawn>0&&this.wave<99){this.wave++;this.player.energy=Math.min(100,this.player.energy+20);this.spawn=.8;flash("WAVE "+this.wave)}
-  document.getElementById("hpBar").style.width=(this.player.hp/120*100)+"%";document.getElementById("enBar").style.width=(this.player.energy/100*100)+"%";document.getElementById("wave").textContent=this.wave;document.getElementById("combo").textContent=this.combo;
-  for(const k of ["Q","E","R"]){document.getElementById(k.toLowerCase()+"Cd").style.width=(this.cool[k]/CONFIG.skills[k].cooldown*100)+"%"}
+  if(this.paused)return;
+  for(const k in this.cool)this.cool[k]=Math.max(0,this.cool[k]-dt);
+  this.spawn-=dt;if(this.spawn<=0){this.spawn=Math.max(.35,CFG.spawnRate-this.waveN*.03);this.spawnEnemy()}
+  this.hero.update(dt,this);for(const e of this.enemies)e.update(dt,this);
+  this.enemies=this.enemies.filter(e=>!e.dead&&e.hp>0);
+  this.hero.hp=clamp(this.hero.hp+dt*1.3,0,100);this.hero.mana=clamp(this.hero.mana+dt*5,0,100);
+  this.comboT-=dt;if(this.comboT<=0)this.combo=0;
+  if(this.enemies.length===0)this.waveN++;
+  this.vfx.update(dt);this.shake=Math.max(0,this.shake-dt);
  }
- spawnEnemy(){const side=Math.random()<.5?-1:1;this.enemies.push(new Enemy(side<0?-50:this.w+50,rand(220,this.h-190),Math.random()<.18?1:0))}
- skill(k){if(!this.running||this.paused)return;const s=CONFIG.skills[k];if(this.cool[k]>0||this.player.energy<s.cost)return;this.player.energy-=s.cost;this.cool[k]=s.cooldown;if(k==="Q")this.combat.Q();if(k==="E")this.combat.E();if(k==="R")this.combat.R();Poki.happyTime()}
- addDamage(x,y,d){this.damage.push({x,y,d,life:.7})}
  draw(){
-  const ctx=this.ctx,w=this.w,h=this.h;ctx.clearRect(0,0,w,h);ctx.save();
-  const sx=rand(-this.shake,this.shake),sy=rand(-this.shake,this.shake);ctx.translate(sx,sy);
-  this.background(ctx,w,h);
-  for(const e of this.enemies)this.drawEnemyHp(ctx,e);
-  this.player.draw(ctx);for(const e of this.enemies)e.draw(ctx);this.vfx.draw(ctx);
-  for(const d of this.damage){ctx.globalAlpha=d.life/.7;ctx.fillStyle="#fff";ctx.font="900 18px Arial";ctx.textAlign="center";ctx.fillText(d.d,d.x,d.y-(.7-d.life)*55)}
-  ctx.restore()
+  const c=this.x;c.clearRect(0,0,this.w,this.h);let sx=0,sy=0;if(this.shake){sx=rand(-1,1)*this.shake*22;sy=rand(-1,1)*this.shake*22}
+  c.save();c.translate(sx,sy);this.background(c);for(const e of this.enemies)e.draw(c);this.hero.draw(c);this.vfx.draw(c);c.restore();
+  document.getElementById('hp').style.width=this.hero.hp+'%';document.getElementById('mana').style.width=this.hero.mana+'%';document.getElementById('combo').textContent=this.combo+' HIT';document.getElementById('wave').textContent='WAVE '+this.waveN;
+  for(const b of document.querySelectorAll('#skills button')){let q=this.cool[b.dataset.skill]||0;b.classList.toggle('cooldown',q>0)}
  }
- background(ctx,w,h){
-  const g=ctx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.42,Math.max(w,h)*.7);g.addColorStop(0,"#14102d");g.addColorStop(.5,"#09091c");g.addColorStop(1,"#03040d");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-  // Three large concept-style colored circles
-  const circles=[[.16,.43,180,"#29154d"],[.36,.43,170,"#111d47"],[.54,.43,175,"#32142e"],[.71,.43,185,"#36251d"],[.89,.43,200,"#10224a"]];
-  for(const [x,y,r,c] of circles){ctx.globalAlpha=.58;ctx.fillStyle=c;ctx.beginPath();ctx.arc(w*x,h*y,r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
-  const horizon=h*.75;ctx.strokeStyle="#15213e";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,horizon);ctx.lineTo(w,horizon);ctx.stroke();
-  for(let x=-w;x<w*2;x+=CONFIG.arena.grid){ctx.beginPath();ctx.moveTo(w/2,horizon);ctx.lineTo(x,h);ctx.stroke()}
-  for(let y=horizon;y<h;y+=30){ctx.globalAlpha=.55;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.globalAlpha=1;
+ background(c){
+  const g=c.createRadialGradient(this.w*.5,this.h*.48,30,this.w*.5,this.h*.48,this.w*.8);g.addColorStop(0,'#15173d');g.addColorStop(.5,'#090b20');g.addColorStop(1,'#02030b');c.fillStyle=g;c.fillRect(0,0,this.w,this.h);
+  c.globalAlpha=.18;for(let i=0;i<18;i++){let x=(i/18)*this.w,y=this.h*.2+Math.sin(i)*80;c.fillStyle=i%2?'#5132a6':'#185ca8';c.beginPath();c.arc(x,y,120,0,7);c.fill()}c.globalAlpha=1;
+  c.strokeStyle='rgba(73,125,220,.16)';c.lineWidth=1;for(let y=this.h*.72;y<this.h;y+=28){c.beginPath();c.moveTo(0,y);c.lineTo(this.w,y);c.stroke()}for(let x=-this.w;x<2*this.w;x+=70){c.beginPath();c.moveTo(this.w/2,this.h*.68);c.lineTo(x,this.h);c.stroke()}
  }
- drawEnemyHp(ctx,e){ctx.fillStyle="#ff5577";ctx.fillRect(e.x-25,e.y-70,50,4);ctx.fillStyle="#45f5c5";ctx.fillRect(e.x-25,e.y-70,50*Math.max(0,e.hp/e.maxHp),4)}
+ loop(t){let dt=Math.min(.033,(t-this.last)/1000);this.last=t;if(this.running){this.update(dt);this.draw();requestAnimationFrame(x=>this.loop(x))}}
 }
-function flash(text){const m=document.getElementById("message");m.textContent=text;m.classList.remove("msg-show");void m.offsetWidth;m.classList.add("msg-show")}

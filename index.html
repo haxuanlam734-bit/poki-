@@ -1,41 +1,36 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#050615">
-  <title>Anime Stick Clash — V12 Concept Match</title>
-  <link rel="stylesheet" href="./style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anime Stick Clash — ULTRA</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main id="app">
-    <canvas id="game" aria-label="Anime Stick Clash game"></canvas>
-    <div id="boot">
-      <div class="boot-title">ANIME STICK CLASH</div>
-      <div class="boot-sub">V12 • CONCEPT MATCH</div>
-      <div class="boot-bar"><i></i></div>
-      <button id="startBtn">ENTER ARENA</button>
+<div id="app">
+  <canvas id="game"></canvas>
+  <div id="hud">
+    <div class="panel player"><b id="heroName">NOVA • AETHER</b><span id="level">LV 12</span>
+      <div class="bar hp"><i id="hp"></i></div><div class="bar mana"><i id="mana"></i></div>
     </div>
-    <div id="hud" class="hidden">
-      <section class="player-card">
-        <div class="avatar">K</div>
-        <div>
-          <b>KAGE</b><span> • VOID EDGE</span>
-          <div class="meter hp"><i id="hpBar"></i></div>
-          <div class="meter en"><i id="enBar"></i></div>
-        </div>
-      </section>
-      <section class="wave-card"><small>WAVE</small><strong id="wave">1</strong><em id="waveState">INCOMING</em></section>
-      <section class="combo"><strong id="combo">0</strong><span>HIT</span><small>COMBO</small></section>
-      <button id="pauseBtn" class="pause">Ⅱ</button>
-      <div class="skills">
-        <button data-skill="Q"><kbd>Q</kbd><span>VOID CUT</span><i id="qCd"></i></button>
-        <button data-skill="E"><kbd>E</kbd><span>PHANTOM DASH</span><i id="eCd"></i></button>
-        <button data-skill="R"><kbd>R</kbd><span>DOMAIN</span><i id="rCd"></i></button>
-      </div>
-      <div id="message"></div>
-    </div>
-  </main>
-  <script type="module" src="./src/main.js"></script>
+    <div class="panel wave"><small>MISSION</small><strong id="wave">WAVE 1</strong><span id="objective">DEFEAT THE INCOMING</span></div>
+    <div class="panel combo"><strong id="combo">0 HIT</strong><small>COMBO</small></div>
+    <button id="pause">Ⅱ</button>
+  </div>
+  <div id="skills">
+    <button data-skill="Q"><b>Q</b><span>STAR REND</span></button>
+    <button data-skill="E"><b>E</b><span>PRISM RUSH</span></button>
+    <button data-skill="R"><b>R</b><span>VOID NOVA</span></button>
+    <button data-skill="F"><b>F</b><span>CELESTIAL</span></button>
+    <button data-skill="T"><b>T</b><span>CHROMA BURST</span></button>
+  </div>
+  <div id="tips">WASD / ARROWS • SPACE DASH • Q E R F T SKILLS</div>
+  <div id="menu">
+    <div class="logo">ANIME <em>STICK</em> CLASH</div>
+    <p>ULTRA VFX EDITION</p>
+    <button id="play">PLAY</button>
+  </div>
+</div>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>

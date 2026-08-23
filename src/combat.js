@@ -1,41 +1,14 @@
-import {dist,norm,angle} from "./math.js";
+import {dist,angle} from './math.js';
 export class Combat{
-  constructor(game){this.g=game}
-  hitEnemies(x,y,r,dmg,kb=260){
-    for(const e of this.g.enemies){const dx=e.x-x,dy=e.y-y,dd=Math.hypot(dx,dy);if(dd<r+e.r){const n=norm(dx,dy);e.hurt(dmg,n.x*kb,n.y*kb);this.g.vfx.burst(e.x,e.y,"#fff",12,220);this.g.vfx.ring(e.x,e.y,"#ff4cff",25,.25,3);this.g.addDamage(e.x,e.y,-dmg);this.g.combo++}}
-  }
-  basic(){
-    const p=this.g.player,a=p.facing>0?0:Math.PI;
-    this.g.vfx.slash(p.x+p.facing*45,p.y-8,a,"#67eaff",145,.18);
-    this.hitEnemies(p.x+p.facing*75,p.y,85,14,180)
-  }
-  Q(){
-    const p=this.g.player,a=p.facing>0?0:Math.PI;
-    this.g.vfx.slash(p.x+p.facing*100,p.y-15,a,"#d94cff",250,.32);
-    this.g.vfx.beam(p.x+p.facing*10,p.y-10,a,"#c74cff",430,.18);
-    this.g.vfx.shock(p.x+p.facing*260,p.y,"#d94cff",160,.35);
-    this.g.vfx.burst(p.x+p.facing*360,p.y,"#f8a0ff",55,500);
-    this.hitEnemies(p.x+p.facing*300,p.y,310,35,620)
-  }
-  E(){
-    const p=this.g.player,a=p.facing>0?0:Math.PI;
-    const ox=p.x,oy=p.y;p.inv=.45;
-    for(let i=0;i<8;i++)p.after.push({x:ox+p.facing*i*35,y:oy,life:.32-i*.025});
-    p.x+=p.facing*260;
-    this.g.vfx.beam(ox,oy,a,"#38a9ff",280,.18);
-    this.g.vfx.slash(p.x,p.y,a,"#4cc9ff",180,.25);
-    this.g.vfx.shock(p.x,p.y,"#38a9ff",145,.3);
-    this.g.vfx.burst(p.x,p.y,"#9cecff",65,450);
-    this.hitEnemies((ox+p.x)/2,p.y,260,30,500)
-  }
-  R(){
-    const p=this.g.player;
-    this.g.shake=24;
-    this.g.vfx.ring(p.x,p.y,"#ffbf32",180,.8,12);
-    this.g.vfx.ring(p.x,p.y,"#ffd85a",270,1.0,7);
-    this.g.vfx.shock(p.x,p.y,"#ffb51b",420,.9);
-    this.g.vfx.burst(p.x,p.y,"#ffd35b",180,650);
-    for(let i=0;i<18;i++){const a=i*Math.PI*2/18;this.g.vfx.beam(p.x+Math.cos(a)*80,p.y+Math.sin(a)*80,a,"#ffbf32",360,.45)}
-    this.hitEnemies(p.x,p.y,480,48,850)
-  }
+ constructor(g){this.g=g}
+ hitCircle(x,y,r,dmg,color,label){const g=this.g;let hit=0;for(const e of g.enemies){if(e.dead)continue;if(Math.hypot(e.x-x,e.y-y)<r+e.r){e.damage(dmg,g);hit++;g.vfx.spark(e.x,e.y,color,20,240);g.vfx.label(e.x,e.y-35,`-${dmg}`,color)}}return hit}
+ cast(k){
+  const g=this.g,h=g.hero;if(g.cool[k]>0||h.mana<g.skills[k].cost)return;
+  h.mana-=g.skills[k].cost;g.cool[k]=g.skills[k].cd;
+  if(k==='Q'){const a=h.rot;g.vfx.slash(h.x,h.y,a,'#58efff',1.2);g.vfx.slash(h.x,h.y,a+.25,'#b46cff',.9);g.vfx.spark(h.x,h.y,'#61f5ff',35,360);g.shake=.18;this.hitCircle(h.x+Math.cos(a)*150,h.y+Math.sin(a)*150,100,14,'#66eeff','STAR')}
+  if(k==='E'){h.vx=Math.cos(h.rot)*950;h.vy=Math.sin(h.rot)*950;g.vfx.beam(h.x,h.y,h.rot,'#ff4cbb',380);g.vfx.ring(h.x,h.y,'#ff68d2',130);g.shake=.25;setTimeout(()=>this.hitCircle(h.x,h.y,135,22,'#ff68d2','RUSH'),90)}
+  if(k==='R'){g.vfx.ring(h.x,h.y,'#8b6cff',430);g.vfx.ring(h.x,h.y,'#3ceeff',280);g.vfx.spark(h.x,h.y,'#9b6cff',100,520);g.shake=.55;this.hitCircle(h.x,h.y,430,34,'#a46cff','VOID NOVA')}
+  if(k==='F'){for(let i=0;i<12;i++)setTimeout(()=>{let a=i*Math.PI*2/12;g.vfx.beam(h.x,h.y,a,'#ffd75e',500);this.hitCircle(h.x+Math.cos(a)*210,h.y+Math.sin(a)*210,90,18,'#ffd75e','CELESTIAL')},i*35);g.vfx.ring(h.x,h.y,'#fff08a',500);g.shake=.8}
+  if(k==='T'){for(let i=0;i<28;i++){let a=i*Math.PI*2/28,r=80+i*9;g.vfx.spark(h.x+Math.cos(a)*r,h.y+Math.sin(a)*r,i%2?'#ff4da6':'#5beaff',8,180)}g.vfx.ring(h.x,h.y,'#ff4da6',330);this.hitCircle(h.x,h.y,330,27,'#ff4da6','CHROMA');g.shake=.45}
+ }
 }

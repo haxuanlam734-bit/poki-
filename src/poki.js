@@ -1,11 +1,9 @@
-// Poki integration point.
-// Keep the game playable on GitHub Pages without the SDK.
-// When Poki supplies the official SDK for publishing, replace the adapter
-// calls with the SDK integration required by their publishing dashboard.
+// Poki integration placeholder.
+// For production publishing, replace this adapter with the official Poki SDK snippet
+// supplied by your Poki publisher account. The game remains fully playable without it.
 export const Poki={
-  async init(){return true},
-  gameplayStart(){},
-  gameplayStop(){},
-  commercialBreak(){return Promise.resolve()},
-  happyTime(){}
+ init(){},
+ gameplayStart(){},
+ gameplayStop(){},
+ commercialBreak(){return Promise.resolve()}
 };
